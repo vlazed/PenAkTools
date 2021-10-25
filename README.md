@@ -33,3 +33,9 @@ Static Prop Replacer
 ==========
 LUA script that is meant to spawn in prop_dynamics in place of map's prop_static entities, it is meant to work together with "blackify" script. It also has a python script made by Awsum N00b which extracts static prop data from map decompiles and turns them into files that the script uses.
 https://www.youtube.com/watch?v=7UQ_ie95Dl0
+
+Very small scripts
+==========
+Various weird scripts I have that are meant to be run through lua_run or lua_run_cl console commands.
+Chatty: Allows you to mimic someone saying stuff in gmod chat. Why? Why not?
+Soft lamps grabber (clientside): Finds all soft lamps and opens their properties menu. I don't think anyone would find it useful apart from me lol.
