@@ -7,6 +7,7 @@ Light Origin Tool + Turn into Dynamic Prop Tool
 Allows you to easily set lighting origin for ragdolls and dynamic props (Works even for entity's bonemerged stuffs. Doesn't work on physics props).
 
 https://www.youtube.com/watch?v=dNIv49caXlM
+
 https://www.youtube.com/watch?v=q_lFPTFm9GI
 
 Lightbounce script + macro
@@ -26,6 +27,7 @@ Material manipulation script for Stop Motion Helper
 Script which is meant to help out with the screenshot based rendering in stop motion helper, which allows playback of specific animated materials that were setup to work with the script through console. Also comes with a macro for Pulover's Macro Creator, as it doesn't work with Stop Motion Helper's own makescreenshot commands.
 
 https://www.youtube.com/watch?v=xbLaRaxnG0U
+
 https://www.youtube.com/watch?v=i4THjugoOUg
 
 Ragdoll Unstretch
