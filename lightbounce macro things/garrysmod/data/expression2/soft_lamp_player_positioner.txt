@@ -1,0 +1,18 @@
+@name Soft Lamp Player Positioner
+@inputs Lamp:entity
+@outputs 
+@persist 
+@trigger 
+runOnTick(30)
+
+
+if(first()||dupefinished())
+{
+    runOnChat(1)
+}
+
+if(chatClk(owner()))
+{
+    owner():setPos(Lamp:toWorld(vec( 6.04, 0, 0 ) ) - vec( 0, 0, 63 ) )
+    owner():setEyeAngles(Lamp:angles() - ang(vec(0,0,Lamp:angles():roll())))
+}

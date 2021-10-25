@@ -1,0 +1,11 @@
+﻿[PMC Code v5.0.5]|F3||1|Window,2,Fast,0,1,Input,-1,-1,1|1|Macro1
+Groups=Start:1
+01|[Pause]||1|5000|Sleep|||||
+2|[LoopStart]|LoopStart|30|0|Loop|||||
+3|p|{p}|1|0|Send|||||
+4|[Pause]||1|3500|Sleep|||||
+5|]|{]}|1|0|Send|||||
+6|[Pause]||1|1000|Sleep|||||
+7|[LoopEnd]|LoopEnd|1|0|Loop|||||
+8|WinMinimize||1|333|WinMinimize||Garry's Mod|||
+

@@ -1,0 +1,33 @@
+"UnlitGeneric"
+{
+	"$basetexture"		"sprites\physbeam"
+	"$nocull"			1
+	"$MinLight"		1
+	"$MaxLight"		1
+	"$additive"		1
+	
+	// basetexturetransform seems to be some matrix thing rather than a vector, so we'd still need some variable to store vector stuff in and then convert it to matrix in
+	// texturetransform proxy. but at least you can name this variable whatever now!
+	$movingStuff "[0 0 0]"
+
+	Proxies
+	{
+	//	TextureScroll
+	//	{
+	//		"texturescrollvar" "$basetexturetransform"
+	//		"texturescrollrate" "2"
+	//		"texturescrollangle" "270.00"
+	//	}
+		TextureTransform
+		{
+			translateVar "$movingStuff"
+			resultVar "$basetexturetransform"
+		}
+		ScrollMagic
+		{
+			"texturescrollvar" "$movingStuff"
+			"texturescrollrate" "2"
+			"texturescrollangle" "270.00"
+		}
+	}
+}
