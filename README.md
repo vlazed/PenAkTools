@@ -49,3 +49,5 @@ Various weird scripts I have that are meant to be run through lua_run or lua_run
 Chatty: Allows you to mimic someone saying stuff in gmod chat. Why? Why not?
 
 Soft lamps grabber (clientside): Finds all soft lamps and opens their properties menu. I don't think anyone would find it useful apart from me lol.
+
+Advanced Camera "attach" script: entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
