@@ -2,6 +2,10 @@ Collection of small lua scripts that may come in handy for Garry's Mod animation
 
 The Tools:
 ==========
+Advanced Camera "attach" script
+==========
+Entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
+
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
 Allows you to easily set lighting origin for ragdolls and dynamic props (Works even for entity's bonemerged stuffs. Doesn't work on physics props).
@@ -44,7 +48,7 @@ https://www.youtube.com/watch?v=7UQ_ie95Dl0
 
 Very small scripts
 ==========
-Various weird scripts I have that are meant to be run through lua_run or lua_run_cl console commands.
+Various weird scripts I have that are meant to be run through lua_run or lua_run_cl console commands:
 
 Chatty: Allows you to mimic someone saying stuff in gmod chat. Why? Why not?
 
