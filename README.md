@@ -6,6 +6,8 @@ Advanced Camera "attach" script
 ==========
 Entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. Once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
 
+https://www.youtube.com/watch?v=RWpHu5314lU
+
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
 Allows you to easily set lighting origin for ragdolls and dynamic props (Works even for entity's bonemerged stuffs. Doesn't work on physics props).
