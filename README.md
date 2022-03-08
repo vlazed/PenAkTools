@@ -4,11 +4,15 @@ The Tools:
 ==========
 Advanced Camera "attach" script
 ==========
-Entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
+Entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. Once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
+
+https://www.youtube.com/watch?v=RWpHu5314lU
 
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
 Allows you to easily set lighting origin for ragdolls and dynamic props (Works even for entity's bonemerged stuffs. Doesn't work on physics props).
+
+This tool is uploaded on steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2591866528
 
 https://www.youtube.com/watch?v=dNIv49caXlM
 
@@ -37,6 +41,8 @@ https://www.youtube.com/watch?v=i4THjugoOUg
 Ragdoll Unstretch
 ==========
 Tool that is based on Standing Pose Tool, allows you to selectively return ragdoll's bones to "normal" positions. It is primarily meant to be used with Ragdoll Stretch Tool: https://steamcommunity.com/sharedfiles/filedetails/?id=529986984&searchtext
+
+This tool is uploaded on steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2587143550
 
 https://www.youtube.com/watch?v=yf2g6Mihhe4
 
