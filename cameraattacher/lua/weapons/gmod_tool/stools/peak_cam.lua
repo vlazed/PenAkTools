@@ -56,7 +56,7 @@ concommand.Add("peak_cam_toentity", function(ply, cmd, args)
 	local ent = SelectedEntity[ply]
 
 	if IsValid(ent) then
-		ply:SetPos(ent:GetPos() - Vector(0, 0, 63))
+		ply:SetPos(ent:GetPos() - ply:WorldToLocal(ply:EyePos()))
 		ply:SetEyeAngles(ent:GetAngles() - Angle(0, 0, ent:GetAngles().Roll))
 	end
 end)
@@ -73,7 +73,7 @@ concommand.Add("peak_cam_tooffset", function(ply, cmd, args)
 		else
 			offset = ent:GetViewOffset()
 		end
-		ply:SetPos(ent:LocalToWorld(offset) - Vector(0, 0, 63))
+		ply:SetPos(ent:LocalToWorld(offset) - ply:WorldToLocal(ply:EyePos()))
 		ply:SetEyeAngles(ent:GetAngles() - Angle(0, 0, ent:GetAngles().Roll))
 	end
 end)
