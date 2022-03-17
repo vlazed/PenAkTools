@@ -2,11 +2,9 @@ Collection of small lua scripts that may come in handy for Garry's Mod animation
 
 The Tools:
 ==========
-Advanced Camera "attach" script
+Advanced Camera Manipulator tool
 ==========
-Entering penak_camera in the console will "attach" advanced camera that you were looking at to your view, and your gmod camera weapon will be selected, thus advanced camera will copy your viewposition and camera weapon's roll and FOV. Once you change your weapons, camera will detach from your view. penak_cameracontrol will make it so you can edit advanced camera's FOV and roll with your camera weapon, but it won't move itself to your view.
-
-https://www.youtube.com/watch?v=RWpHu5314lU
+Adds an "AdvCam Manipulator" tool that allows you to move Advanced Cameras and Soft Lamps by attaching them to yourself and moving with you, also allows to teleport yourself to the entity's position or its offset.
 
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
