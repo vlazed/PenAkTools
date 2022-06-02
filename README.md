@@ -28,6 +28,14 @@ LUA  script that works for specific .vmt eye materials that allows you to manipu
 
 https://youtu.be/4AetyXCdy_Y?t=419
 
+"Macro Replacement" Script
+==========================
+Script that adds "Macro Replacer" tab under "Peak Incompetence" category in gmod's utilities menu, that allows you to run console commands on loop with specific delays. Primary function for it is to run screenshot commands and advance SMH's animation by a frame, basically what smh_makejpeg does, but more customizable. Pairs quite well with material manipulation script below.
+Currently it has a bug with UI that seems to happen if you click on the text entry box and click on the macro replacer tab.
+I was thinking I could put it into SMH sometime later.
+
+https://www.youtube.com/watch?v=YQUmgGY1Pds
+
 Material manipulation script for Stop Motion Helper
 ==========
 Script which is meant to help out with the screenshot based rendering in stop motion helper, which allows playback of specific animated materials that were setup to work with the script through console. Also comes with a macro for Pulover's Macro Creator, as it doesn't work with Stop Motion Helper's own makescreenshot commands.
