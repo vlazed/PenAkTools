@@ -1,0 +1,124 @@
+TOOL.Category		= "Construction"
+TOOL.Name			= "Ragdoll Weight"
+TOOL.Command		= nil
+TOOL.ConfigName		= nil
+
+TOOL.ClientConVar["weight"] = 10
+TOOL.ClientConVar["allbones"] = 0
+
+if SERVER then
+
+util.AddNetworkString( "RagWeight_RequestWeight" )
+util.AddNetworkString( "RagWeight_RequestWeightResponse" )
+
+net.Receive( "RagWeight_RequestWeight", function( len, ply )
+
+	local tr = ply:GetEyeTrace()
+	local ent = tr.Entity
+	local physID = tr.PhysicsBone
+
+	if IsValid( ent ) and ( ent:GetClass() == "prop_physics" or ent:GetClass() == "prop_ragdoll" ) then
+		net.Start( "RagWeight_RequestWeightResponse" )
+		net.WriteFloat( ent:GetPhysicsObjectNum( physID ):GetMass() )
+		net.Send( ply )
+	end
+
+end )
+
+end
+
+function TOOL:LeftClick( tr )
+	local ent = tr.Entity
+
+	if not IsValid( ent ) or not ent:GetClass() == "prop_physics" or not ent:GetClass() == "prop_ragdoll" then return false end
+
+	if CLIENT then return true end
+
+	local physID = tr.PhysicsBone
+
+	if self:GetClientNumber("allbones", 0) ~= 0 then
+		for i = 0, ent:GetPhysicsObjectCount() - 1 do
+			ent:GetPhysicsObjectNum( i ):SetMass( self:GetClientNumber( "weight", 10 ) )
+		end
+	else
+		ent:GetPhysicsObjectNum( physID ):SetMass( self:GetClientNumber( "weight", 10 ) )
+	end
+
+	net.Start( "RagWeight_RequestWeightResponse" )
+	net.WriteFloat( ent:GetPhysicsObjectNum( physID ):GetMass() )
+	net.Send( self:GetOwner() )
+
+	return true
+end
+
+
+if CLIENT then
+
+local lastent = nil
+local lastbone = nil
+local weight = nil
+
+net.Receive( "RagWeight_RequestWeightResponse", function(len)
+	weight = net.ReadFloat()
+end )
+
+
+function TOOL.BuildCPanel(CPanel)
+
+	local item = vgui.Create( "DNumSlider", CPanel )
+	item:SetText( "Weight" )
+	item:SetDecimals( 2 )
+	item:SetMinMax( 0.01, 50000 )
+	item:SetConVar( "ragdollweight_weight" )
+	item:SetDark( true )
+	CPanel:AddItem( item )
+
+	item = vgui.Create( "DCheckBoxLabel", CPanel )
+	item:SetText( "Apply weight to all bones" )
+	item:SetConVar( "ragdollweight_allbones" )
+	item:SetDark( true )
+	CPanel:AddItem( item )
+
+end
+
+function TOOL:DrawHUD()
+
+	local tr = LocalPlayer():GetEyeTrace()
+	local ent = tr.Entity
+	local physID = tr.PhysicsBone
+
+	if IsValid( ent ) and ( ent:GetClass() == "prop_physics" or ent:GetClass() == "prop_ragdoll" ) then
+		local bone = ent:TranslatePhysBoneToBone( physID )
+
+		local name = ent:GetBoneName( bone )
+		if not weight or lastbone ~= name or lastent ~= ent then
+			weight = "Not initialized"
+			lastbone = name
+
+			net.Start( "RagWeight_RequestWeight" )
+			net.SendToServer()
+		end
+
+		local _pos, _ang = ent:GetBonePosition( bone )
+
+		if not _pos or not _ang then
+			_pos, _ang = ent:GetPos(), ent:GetAngles()
+		end
+
+		_pos = _pos:ToScreen()
+		local textpos = { x = _pos.x + 5, y = _pos.y - 5 }
+		surface.DrawCircle( _pos.x, _pos.y, 2.5, Color( 0, 200, 0, 255 ) )
+
+		local infostring = (ent:GetClass() == "prop_ragdoll" and (" Bone: " .. name) or " ") .. " Weight: " .. weight
+		draw.SimpleText( infostring, "Default", textpos.x, textpos.y, Color( 0, 200, 0, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM )
+	end
+
+	lastent = ent
+
+end
+
+language.Add("tool.ragdollweight.name","Ragdoll Weight")
+language.Add("tool.ragdollweight.desc","Set weight of ragdolls' bones")
+language.Add("tool.ragdollweight.0", "Left click on a bone to set its weight")
+
+end
