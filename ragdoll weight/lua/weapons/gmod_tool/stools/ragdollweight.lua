@@ -59,7 +59,7 @@ local lastbone = nil
 local weight = nil
 
 net.Receive( "RagWeight_RequestWeightResponse", function(len)
-	weight = net.ReadFloat()
+	weight = math.Round( net.ReadFloat(), 2 )
 end )
 
 
@@ -109,8 +109,8 @@ function TOOL:DrawHUD()
 		local textpos = { x = _pos.x + 5, y = _pos.y - 5 }
 		surface.DrawCircle( _pos.x, _pos.y, 2.5, Color( 0, 200, 0, 255 ) )
 
-		local infostring = (ent:GetClass() == "prop_ragdoll" and (" Bone: " .. name) or " ") .. " Weight: " .. weight
-		draw.SimpleText( infostring, "Default", textpos.x, textpos.y, Color( 0, 200, 0, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM )
+		local infostring =  "Weight: " .. weight .. (ent:GetClass() == "prop_ragdoll" and (" Bone: " .. name) or "")
+		draw.SimpleText( infostring, "GModToolSubtitle", textpos.x, textpos.y, Color( 0, 200, 0, 255 ), TEXT_ALIGN_LEFT, TEXT_ALIGN_BOTTOM )
 	end
 
 	lastent = ent
