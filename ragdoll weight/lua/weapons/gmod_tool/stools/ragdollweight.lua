@@ -27,22 +27,44 @@ end )
 
 end
 
+local function RagdollWeight(ply, ent, weightdata)
+
+	if not IsValid( ent ) or not ent:GetClass() == "prop_physics" or not ent:GetClass() == "prop_ragdoll" then return false end
+
+	if not ent.RagdollWeightData then ent.RagdollWeightData = {} end
+
+	for boneid, weight in pairs(weightdata) do
+		ent.RagdollWeightData[boneid] = weight
+		ent:GetPhysicsObjectNum( boneid ):SetMass( weight )
+	end
+
+	if SERVER then
+		duplicator.ClearEntityModifier( ent, "ragdoll_weight_stuff" )
+		duplicator.StoreEntityModifier( ent, "ragdoll_weight_stuff", weightdata )
+	end
+
+end
+duplicator.RegisterEntityModifier( "ragdoll_weight_stuff", RagdollWeight )
+
 function TOOL:LeftClick( tr )
 	local ent = tr.Entity
 
 	if not IsValid( ent ) or not ent:GetClass() == "prop_physics" or not ent:GetClass() == "prop_ragdoll" then return false end
-
 	if CLIENT then return true end
 
+	ent.RagdollWeightData = ent.RagdollWeightData or {}
 	local physID = tr.PhysicsBone
 
 	if self:GetClientNumber("allbones", 0) ~= 0 then
 		for i = 0, ent:GetPhysicsObjectCount() - 1 do
-			ent:GetPhysicsObjectNum( i ):SetMass( self:GetClientNumber( "weight", 10 ) )
+			ent.RagdollWeightData[i] = self:GetClientNumber( "weight", 10 )
 		end
 	else
-		ent:GetPhysicsObjectNum( physID ):SetMass( self:GetClientNumber( "weight", 10 ) )
+		ent.RagdollWeightData[physID] = self:GetClientNumber( "weight", 10 )
 	end
+	
+
+	RagdollWeight( self.Owner, ent, ent.RagdollWeightData )
 
 	net.Start( "RagWeight_RequestWeightResponse" )
 	net.WriteFloat( ent:GetPhysicsObjectNum( physID ):GetMass() )
