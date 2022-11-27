@@ -52,6 +52,8 @@ Tool that allows to set weight for individual bones on ragdolls, or set weight t
 
 This tool is uploaded on steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2888247176
 
+https://www.youtube.com/watch?v=VGACqXq45q8
+
 Ragdoll Unstretch
 ==========
 Tool that is based on Standing Pose Tool, allows you to selectively return ragdoll's bones to "normal" positions. It is primarily meant to be used with Ragdoll Stretch Tool: https://steamcommunity.com/sharedfiles/filedetails/?id=529986984&searchtext
