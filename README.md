@@ -6,6 +6,10 @@ Advanced Camera Manipulator tool
 ==========
 Adds an "AdvCam Manipulator" tool that allows you to move Advanced Cameras and Soft Lamps by attaching them to yourself and moving with you, also allows to teleport yourself to the entity's position or its offset.
 
+This tool is uploaded on steam workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=2787625185
+
+https://www.youtube.com/watch?v=SMtjvSXIxEc
+
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
 Allows you to easily set lighting origin for ragdolls and dynamic props (Works even for entity's bonemerged stuffs. Doesn't work on physics props).
