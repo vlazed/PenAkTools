@@ -13,7 +13,7 @@ local BigemsBinted = false
 local PropReplacers = {}
 local DataDir = "propreplace/"
 
-concommand.Add("peak_replace_st_props_fromfile", function(ply, cmd, args)
+concommand.Add("peak_sprep_replacefromfile", function(ply, cmd, args)
 	if not game.SinglePlayer() then return end
 	if CLIENT then return end
 
@@ -74,7 +74,7 @@ function(cmd, stringargs)
 	return result
 end)
 
-concommand.Add("peak_replace_st_props", function(ply, cmd, args)
+concommand.Add("peak_sprep_replace", function(ply, cmd, args)
 	if not game.SinglePlayer() then return end
 	if CLIENT then return end
 
@@ -107,7 +107,7 @@ concommand.Add("peak_replace_st_props", function(ply, cmd, args)
 	end
 end)
 
-concommand.Add("peak_create_static_prop_data", function(ply, cmd, args)
+concommand.Add("peak_sprep_makepropdata", function(ply, cmd, args)
 	if not game.SinglePlayer() then return end
 	if CLIENT then return end
 
