@@ -82,7 +82,7 @@ peak_sprep_replace - Spawns in prop_dynamics from the map you're on and hides st
 
 peak_sprep_replacefromfile [.txt with prop data] - Spawns in prop_dynamic from a json file that's stored in data/propreplace folder, if replacer props were already spawned then it'll clear them and show static props
 
-peak_sprep_makedata - Takes static prop data from the map you're on and creates a json file in data/propreplace folder, this is primarily meant to be used as a way to edit out some of the static props, like if some props have to be removed
+peak_sprep_makepropdata - Takes static prop data from the map you're on and creates a json file in data/propreplace folder, this is primarily meant to be used as a way to edit out some of the static props, like if some props have to be removed
 
 Has an older version with a python script made by Awsum N00b which extracts static prop data from map decompiles and turns them into files that the script uses.
 
