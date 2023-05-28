@@ -78,13 +78,15 @@ Static Prop Replacer
 LUA script that is meant to spawn in prop_dynamics in place of map's prop_static entities, it is meant to work together with "blackify" script. Uses NikNaks library https://steamcommunity.com/sharedfiles/filedetails/?id=2861839844
 
 Console commands:
-peak_replace_st_props - Spawns in prop_dynamics from the map you're on and hides static props, if replacer props were already spawned then it'll clear them and show static props
+peak_sprep_replace - Spawns in prop_dynamics from the map you're on and hides static props, if replacer props were already spawned then it'll clear them and show static props
 
-peak_replace_st_props_fromfile [.txt with prop data] - Spawns in prop_dynamic from a json file that's stored in data/propreplace folder, if replacer props were already spawned then it'll clear them and show static props
+peak_sprep_replacefromfile [.txt with prop data] - Spawns in prop_dynamic from a json file that's stored in data/propreplace folder, if replacer props were already spawned then it'll clear them and show static props
 
-peak_create_static_prop_data - Takes static prop data from the map you're on and creates a json file in data/propreplace folder, this is primarily meant to be used as a way to edit out some of the static props, like if some props have to be removed
+peak_sprep_makedata - Takes static prop data from the map you're on and creates a json file in data/propreplace folder, this is primarily meant to be used as a way to edit out some of the static props, like if some props have to be removed
 
 Has an older version with a python script made by Awsum N00b which extracts static prop data from map decompiles and turns them into files that the script uses.
+
+https://youtu.be/2DhWY4V_yqQ
 
 https://www.youtube.com/watch?v=7UQ_ie95Dl0
 
