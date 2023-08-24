@@ -2,26 +2,66 @@ TOOL.Category		= "Render"
 TOOL.Name			= "Set Lighting Origin"
 TOOL.Command		= nil
 TOOL.ConfigName		= nil
-local FunnyNumber = 0
-local children = {}
+
+if SERVER then
+
+duplicator.RegisterEntityModifier("peak Set Lighting Origin", function(pl, ent, data)
+
+	ent.setlightingoriginPostEntityPaste = ent.PostEntityPaste
+
+	ent.PostEntityPaste = function(self, pl, ent, newents)
+		if ent.setlightingoriginPostEntityPaste then
+			ent:setlightingoriginPostEntityPaste(pl, ent, newents)
+		end
+
+		local parent = newents[data.origin]
+
+		if parent then
+			parent:SetName("lightingparent")
+
+			local newdata = {}
+			newdata.origin = parent:EntIndex()
+			newdata.children = {}
+
+			for k, id in ipairs(data.children) do
+				if not newents[id] then continue end
+
+				if newents[id]:GetClass() == "prop_effect" and newents[id].AttachedEntity then
+					newents[id].AttachedEntity:Fire("setlightingorigin", parent:GetName())
+				else
+					newents[id]:Fire("setlightingorigin", parent:GetName())
+				end
+				table.insert(newdata.children, newents[id]:EntIndex())
+			end
+
+			duplicator.ClearEntityModifier(self, "peak Set Lighting Origin")
+			duplicator.StoreEntityModifier(self, "peak Set Lighting Origin", newdata)
+
+			timer.Simple(0.01, function()
+				parent:SetName("")
+			end)
+
+		end
+	end
+end)
+
+end
 
 function TOOL:LeftClick(tr)
+	if not self.Children then self.Children = {} end
+
 	if self:GetStage() == 0 then
 		if !IsValid(tr.Entity) then return false end
 
 		if CLIENT then return true end
 
-		if tr.Entity:GetClass() == "prop_effect" and IsValid(tr.Entity.AttachedEntity) then
-			self.SelectedEnt = tr.Entity.AttachedEntity
-		else
-			self.SelectedEnt = tr.Entity
-		end
+		self.SelectedEnt = tr.Entity
 
-		children[1] = self.SelectedEnt
+		self.Children[1] = self.SelectedEnt
 
 		for k, ent in pairs(self.SelectedEnt:GetChildren()) do
-			if !IsValid(ent) then continue end
-			table.insert(children, ent)
+			if not IsValid(ent) then continue end
+			table.insert(self.Children, ent)
 		end
 
 		self:SetStage(1)
@@ -34,16 +74,31 @@ function TOOL:LeftClick(tr)
 
 		local parent = tr.Entity
 
-		parent:SetName("lightingparent" .. FunnyNumber)
+		parent:SetName("lightingparent")
+		local data = {}
+		data.origin = parent:EntIndex()
+		data.children = {}
 
-		for k, ent in ipairs(children) do
-			local child = ent
-			child:Fire("setlightingorigin", parent:GetName())
+		for k, ent in ipairs(self.Children) do
+			if not IsValid(ent) then continue end
+
+			if ent:GetClass() == "prop_effect" and IsValid(ent.AttachedEntity) then
+				ent.AttachedEntity:Fire("setlightingorigin", parent:GetName())
+			else
+				ent:Fire("setlightingorigin", parent:GetName())
+			end
+			table.insert(data.children, ent:EntIndex())
 		end
 
-		FunnyNumber = FunnyNumber + 1
+		duplicator.ClearEntityModifier(self.SelectedEnt, "peak Set Lighting Origin")
+		duplicator.StoreEntityModifier(self.SelectedEnt, "peak Set Lighting Origin", data)
+
+		timer.Simple(0.01, function()
+			parent:SetName("")
+		end)
+
 		self:SetStage(0)
-		children = {}
+		self.Children = {}
 		return true
 	end
 end
@@ -51,7 +106,7 @@ end
 function TOOL:Reload(tr)
 	if self:GetStage() == 1 then
 		self:SetStage(0)
-		children = {}
+		self.Children = {}
 		return true
 	end
 	return false
