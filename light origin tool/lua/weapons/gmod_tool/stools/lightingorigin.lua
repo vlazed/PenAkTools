@@ -17,7 +17,7 @@ duplicator.RegisterEntityModifier("peak Set Lighting Origin", function(pl, ent, 
 		local parent = newents[data.origin]
 
 		if parent then
-			parent:SetName("lightingparent")
+			parent:SetName("lightingparent" .. parent:EntIndex())
 
 			local newdata = {}
 			newdata.origin = parent:EntIndex()
@@ -74,7 +74,7 @@ function TOOL:LeftClick(tr)
 
 		local parent = tr.Entity
 
-		parent:SetName("lightingparent")
+		parent:SetName("lightingparent" .. parent:EntIndex())
 		local data = {}
 		data.origin = parent:EntIndex()
 		data.children = {}
