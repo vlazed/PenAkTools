@@ -6,6 +6,11 @@ TOOL.ConfigName		= nil
 TOOL.ClientConVar["weight"] = 10
 TOOL.ClientConVar["allbones"] = 0
 
+local DefaultWeights
+if SERVER then
+	DefaultWeights = {}
+end
+
 if SERVER then
 
 util.AddNetworkString( "RagWeight_RequestWeight" )
@@ -23,6 +28,20 @@ net.Receive( "RagWeight_RequestWeight", function( len, ply )
 		net.Send( ply )
 	end
 
+end )
+
+hook.Add( "OnEntityCreated", "RagWeight_StoreDefaultWeight", function(ent)
+	if IsValid(ent) and ( ( ent:GetClass() == "prop_physics" ) or ( ent:GetClass() == "prop_ragdoll" ) ) then
+		timer.Simple( 0.1, function()
+			if not DefaultWeights[ent:GetModel()] then
+				DefaultWeights[ent:GetModel()] = {}
+
+				for i = 0, ent:GetPhysicsObjectCount() - 1 do
+					DefaultWeights[ent:GetModel()][i] = ent:GetPhysicsObjectNum(i):GetMass()
+				end
+			end
+		end )
+	end
 end )
 
 end
@@ -73,8 +92,51 @@ function TOOL:LeftClick( tr )
 	return true
 end
 
+function TOOL:RightClick( tr )
+	local ent = tr.Entity
+
+	if not IsValid( ent ) or not ent:GetClass() == "prop_physics" or not ent:GetClass() == "prop_ragdoll" then return false end
+	if CLIENT then return true end
+
+	local physID = tr.PhysicsBone
+	RunConsoleCommand("ragdollweight_weight", ent:GetPhysicsObjectNum( physID ):GetMass())
+
+	return true
+end
+
+function TOOL:Reload( tr )
+	local ent = tr.Entity
+
+	if not IsValid( ent ) or not ent:GetClass() == "prop_physics" or not ent:GetClass() == "prop_ragdoll" or not DefaultWeights[ent:GetModel()] then return false end
+	if CLIENT then return true end
+
+	ent.RagdollWeightData = ent.RagdollWeightData or {}
+	local physID = tr.PhysicsBone
+
+	if self:GetClientNumber("allbones", 0) ~= 0 then
+		for i = 0, ent:GetPhysicsObjectCount() - 1 do
+			ent.RagdollWeightData[i] = DefaultWeights[ent:GetModel()][i]
+		end
+	else
+		ent.RagdollWeightData[physID] = DefaultWeights[ent:GetModel()][physID]
+	end
+
+	RagdollWeight( self.Owner, ent, ent.RagdollWeightData )
+
+	net.Start( "RagWeight_RequestWeightResponse" )
+	net.WriteFloat( ent:GetPhysicsObjectNum( physID ):GetMass() )
+	net.Send( self:GetOwner() )
+
+	return true
+end
 
 if CLIENT then
+
+TOOL.Information = {
+	{ name = "left" },
+	{ name = "right" },
+	{ name = "reload" }
+}
 
 local lastent = nil
 local lastbone = nil
@@ -141,6 +203,8 @@ end
 
 language.Add("tool.ragdollweight.name","Ragdoll Weight")
 language.Add("tool.ragdollweight.desc","Set weight of ragdolls' bones")
-language.Add("tool.ragdollweight.0", "Left click on a bone to set its weight")
+language.Add("tool.ragdollweight.left", "Set selected bone's weight")
+language.Add("tool.ragdollweight.right", "Copy selected bone's weight")
+language.Add("tool.ragdollweight.reload", "Reset selected bone's weight")
 
 end
