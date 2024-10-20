@@ -15,7 +15,7 @@ Fakedepth post processing effect
 Edit of depth shader addon by ilikecreepers - https://steamcommunity.com/sharedfiles/filedetails/?id=2805432246
 Allows to make depth render like effect, which could be useful for adding fog or DOF stuff in post editing. Edit allows this shader to work with skyboxes, makes it so render happens only once, so it doesn't get updated in realtime to save on resources, and has an option to add 3rd plane between original ones and color it.
 
-Video coming soon!
+https://www.youtube.com/watch?v=UaCVbICWNgA
 
 Light Origin Tool + Turn into Dynamic Prop Tool
 ==========
