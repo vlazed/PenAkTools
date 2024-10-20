@@ -33,11 +33,13 @@ end )
 hook.Add( "OnEntityCreated", "RagWeight_StoreDefaultWeight", function(ent)
 	if IsValid(ent) and ( ( ent:GetClass() == "prop_physics" ) or ( ent:GetClass() == "prop_ragdoll" ) ) then
 		timer.Simple( 0.1, function()
-			if not DefaultWeights[ent:GetModel()] then
-				DefaultWeights[ent:GetModel()] = {}
+			if IsValid(ent) then
+				if not DefaultWeights[ent:GetModel()] then
+					DefaultWeights[ent:GetModel()] = {}
 
-				for i = 0, ent:GetPhysicsObjectCount() - 1 do
-					DefaultWeights[ent:GetModel()][i] = ent:GetPhysicsObjectNum(i):GetMass()
+					for i = 0, ent:GetPhysicsObjectCount() - 1 do
+						DefaultWeights[ent:GetModel()][i] = ent:GetPhysicsObjectNum(i):GetMass()
+					end
 				end
 			end
 		end )
