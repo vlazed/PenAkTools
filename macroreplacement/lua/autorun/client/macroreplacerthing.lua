@@ -181,12 +181,7 @@ local function MacroBuild( Panel )
 		controlPresets:AddConVar("macrothing_execute1")
 		controlPresets:AddConVar("macrothing_execute2")
 		controlPresets:SetPreset("Macro Replacer")
-		presets.Add("Macro Replacer", "Last saved preset", {
-			macrothing_wait1 = wait1:GetString(),
-			macrothing_wait2 = wait2:GetString(),
-			macrothing_execute1 = execute1:GetString(),
-			macrothing_execute2 = execute2:GetString(),
-		})
+		presets.Add("Macro Replacer", "Last saved preset", macroOption(wait1:GetString(), wait2:GetString(), execute1:GetString(), execute2:GetString()))
 		return controlPresets
 	end
 
