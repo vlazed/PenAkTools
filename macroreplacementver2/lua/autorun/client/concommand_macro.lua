@@ -6,8 +6,13 @@ local MacroTable, Loops = {}, {}
 local Step, CurLoop = 0, 0
 local Owner = Owner or LocalPlayer()
 
+local ConFile  = CreateClientConVar("peak_concommac_file", "default", true, false, "Name of the currently selected file with Macro instructions")
+
 local Action = {
 	function(var, step) -- Wait
+		var = tonumber(var)
+		if not var then var = 0 end
+
 		local time = CurTime()
 
 		while ( CurTime() - time < var ) and not Stop do
@@ -24,6 +29,9 @@ local Action = {
 	end,
 
 	function(var, step) -- Loop start
+		var = tonumber(var)
+		if not var then var = 1 end
+
 		CurLoop = CurLoop + 1
 		Loops[CurLoop] = {
 			Repeats = var - 1,
@@ -40,6 +48,9 @@ print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
 			Loops[CurLoop].Repeats = Repeats - 1
 		else
 			Loops[CurLoop] = nil print("Loop " .. CurLoop .. " done")
+			if CurLoop > 0 then
+				CurLoop = CurLoop - 1
+			end
 		end
 
 		return step
@@ -47,45 +58,44 @@ print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
 }
 
 -- test
-MacroTable = {
-	{
-		Type = 1,
-		Var = 1
-	},
+if ConFile:GetString() == "default" then
+	MacroTable = {
+		{
+			Type = 1,
+			Var = 1
+		},
 
-	{
-		Type = 3,
-		Var = 100
-	},
+		{
+			Type = 3,
+			Var = 100
+		},
 
-	{
-		Type = 2,
-		Var = "+attack"
-	},
+		{
+			Type = 2,
+			Var = "+attack"
+		},
 
-	{
-		Type = 1,
-		Var = 0.01
-	},
+		{
+			Type = 1,
+			Var = 0.01
+		},
 
-	{
-		Type = 2,
-		Var = "-attack"
-	},
+		{
+			Type = 2,
+			Var = "-attack"
+		},
 
-	{
-		Type = 1,
-		Var = 0.01
-	},
+		{
+			Type = 1,
+			Var = 0.01
+		},
 
-	{
-		Type = 4
+		{
+			Type = 4
+		}
 	}
-}
-
-
-local function GrabConvar( name )
-	return GetConVar( name ):GetFloat()
+else
+	
 end
 
 local function macro(step)
@@ -118,6 +128,7 @@ local cor = coroutine.create(macro)
 local function MacroTick()
 	if Working then
 		local b, step = coroutine.resume(cor, Step)
+		if not b then print (b, step) end
 		if b and step then
 			Step = step
 		end
@@ -141,151 +152,214 @@ concommand.Add( "peak_mac_start", function()
 	end
 end )
 
+-------- UI Related functions --------
+
+local UIBuild = {
+	function( cpanel, tab, id ) -- Wait
+		local base = vgui.Create("DPanel", cpanel)
+		cpanel:AddItem(base)
+
+		base.text = vgui.Create("DLabel", base)
+		base.text:SetDark(true)
+		base.text:SetText("Step " .. id .. ": Wait (seconds)")
+
+		base.entry = vgui.Create("DTextEntry", base)
+		base.entry:SetNumeric(true)
+		base.entry:SetValue(tab.Var)
+		base.entry:SetUpdateOnType(true)
+
+		base.entry.OnValueChange = function(self, val)
+			val = tonumber(val)
+			if val then
+				tab.Var = val
+			end
+		end
+
+		base.PerformLayout = function(self)
+			self:SetHeight(48)
+
+			self.text:SetPos(10, 5)
+			self.text:SetWide(self:GetWide())
+
+			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetPos(5, 28)
+		end
+
+		return base
+	end,
+		
+	function( cpanel, tab, id ) -- Concommand
+		local base = vgui.Create("DPanel", cpanel)
+		cpanel:AddItem(base)
+
+		base.text = vgui.Create("DLabel", base)
+		base.text:SetDark(true)
+		base.text:SetText("Step " .. id .. ": Console Command")
+
+		base.entry = vgui.Create("DTextEntry", base)
+		base.entry:SetValue(tab.Var)
+		base.entry:SetUpdateOnType(true)
+
+		base.entry.OnValueChange = function(self, val)
+			val = tostring(val)
+			if val then
+				tab.Var = val
+			end
+		end
+
+		base.PerformLayout = function(self)
+			self:SetHeight(48)
+
+			self.text:SetPos(10, 5)
+			self.text:SetWide(self:GetWide())
+
+			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetPos(5, 28)
+		end
+
+		return base
+	end,
+		
+	function( cpanel, tab, id ) -- Loop Start
+		local base = vgui.Create("DPanel", cpanel)
+		cpanel:AddItem(base)
+
+		base.text = vgui.Create("DLabel", base)
+		base.text:SetDark(true)
+		base.text:SetText("Step " .. id .. ": Loop Start (Repeat amount)")
+
+		base.entry = vgui.Create("DTextEntry", base)
+		base.entry:SetNumeric(true)
+		base.entry:SetValue(tab.Var)
+		base.entry:SetUpdateOnType(true)
+
+		base.entry.OnValueChange = function(self, val)
+			val = tonumber(val)
+			if val then
+				val = math.floor(val)
+				tab.Var = val
+			end
+		end
+
+		base.PerformLayout = function(self)
+			self:SetHeight(48)
+
+			self.text:SetPos(10, 5)
+			self.text:SetWide(self:GetWide())
+
+			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetPos(5, 28)
+		end
+
+		return base
+	end,
+		
+	function( cpanel, tab, id ) -- Loop end
+		local base = vgui.Create("DPanel", cpanel)
+		cpanel:AddItem(base)
+
+		base.text = vgui.Create("DLabel", base)
+		base.text:SetDark(true)
+		base.text:SetText("Step " .. id ..": Loop End")
+
+		base.PerformLayout = function(self)
+			self:SetHeight(28)
+
+			self.text:SetPos(10, 5)
+			self.text:SetWide(self:GetWide())
+		end
+
+		return base
+	end
+}
+
+local function MacroMenu( cpanel )
+	local macrobase = vgui.Create("DPanelList", cpanel)
+	macrobase:SetPaintBackgroundEnabled(false)
+	macrobase:SetSpacing(6)
+	cpanel:AddItem(macrobase)
+
+	macrobase.items = {}
+
+	for id, tab in ipairs(MacroTable) do
+		table.insert( macrobase.items, UIBuild[tab.Type](macrobase, tab, id) )
+	end
+
+	macrobase.OldPerform = macrobase.PerformLayout
+
+	macrobase.PerformLayout = function(self)
+		self:OldPerform()
+		self:SizeToChildren(false, true)
+	end
+
+
+
+	local buttonbase = vgui.Create("Panel", cpanel)
+	cpanel:AddItem(buttonbase)
+
+	buttonbase.addbutton = vgui.Create("DButton", buttonbase)
+	buttonbase.addbutton:SetText("+")
+	buttonbase.addbutton:SetSize(20, 20)
+
+	buttonbase.addbutton.DoClick = function()
+		local function ExpandMacro(typeid)
+			local tab
+			if typeid ~= 4 then
+				tab = { Type = typeid, Var = "" }
+			else
+				tab = { Type = typeid }
+			end
+
+			table.insert( MacroTable, tab )
+			table.insert( macrobase.items, UIBuild[tab.Type](macrobase, tab, #MacroTable) )
+		end
+
+		local dmenu = DermaMenu()
+		dmenu:AddOption( "Add Wait", function() ExpandMacro(1) end )
+		dmenu:AddOption( "Add Console Command", function() ExpandMacro(2) end )
+		dmenu:AddOption( "Add Loop Start", function() ExpandMacro(3) end )
+		dmenu:AddOption( "Add Loop End", function() ExpandMacro(4) end )
+		dmenu:Open()
+	end
+
+	buttonbase.removebutton = vgui.Create("DButton", buttonbase)
+	buttonbase.removebutton:SetText("-")
+	buttonbase.removebutton:SetSize(20, 20)
+
+	buttonbase.removebutton.DoClick = function()
+		local id = #MacroTable
+		MacroTable[id] = nil
+
+		macrobase.items[id]:Remove()
+		macrobase.items[id] = nil
+	end
+
+	buttonbase.removebutton.DoRightClick = function()
+		local dmenu = DermaMenu()
+		dmenu:AddOption( "Delete every step", function()
+			for id, panel in ipairs(macrobase.items) do
+				panel:Remove()
+			end
+
+			macrobase.items = {}
+			MacroTable = {}
+		end )
+		dmenu:Open()
+	end
+
+	buttonbase.PerformLayout = function(self)
+		self:SetHeight(30)
+
+		self.addbutton:SetPos(self:GetWide()/2 - 30, 10)
+
+		self.removebutton:SetPos(self:GetWide()/2 + 10, 10)
+	end
+
+	return base, buttonbase
+end
+
 local function MacroBuild( Panel )
 	if not Owner or not IsValid(Owner) then Owner = LocalPlayer() end
-
-	local function MakeSlider( name, default, min, max, convar, decimals )
-		local newslider = vgui.Create( "DNumSlider", Panel )
-		newslider:SetDefaultValue( default )
-		newslider:SetConVar( convar )
-		newslider:SetDecimals( decimals )
-		newslider:SetMinMax(min, max)
-		newslider:SetText( name )
-		newslider:SetDark( true )
-		newslider:SetSize( 100, 20 )
-		newslider:Dock( TOP )
-		newslider:DockMargin( 0, 5, 0, 5 )
-		return newslider
-	end
-
-	local function MakeTextBox( convar )
-		local newtextentry = vgui.Create( "DTextEntry", Panel )
-		newtextentry:SetConVar( convar )
-		newtextentry:SetText( GetConVar( convar ):GetString() )
-		newtextentry:SetSize( 100, 20 )
-		newtextentry:Dock( TOP )
-		newtextentry:DockMargin( 0, 5, 0, 5 )
-		return newtextentry
-	end
-
-	local UIBuild = {
-		function( cpanel, tab ) -- Wait
-			local base = vgui.Create("DPanel", cpanel)
-			cpanel:AddItem(base)
-
-			base.text = vgui.Create("DLabel", base)
-			base.text:SetDark(true)
-			base.text:SetText("Wait (seconds)")
-
-			base.entry = vgui.Create("DTextEntry", base)
-			base.entry:SetNumeric(true)
-			base.entry:SetValue(tab.Var)
-			base.entry:SetUpdateOnType(true)
-
-			base.entry.OnValueChange = function(self, val)
-				val = tonumber(val)
-				if val then
-					tab.Var = val
-				end
-			end
-
-			base.PerformLayout = function()
-				base:SetHeight(48)
-
-				base.text:SetPos(10, 5)
-				base.text:SetWide(base:GetWide())
-
-				base.entry:SetSize(base:GetWide() - 10, 15)
-				base.entry:SetPos(5, 28)
-			end
-
-			return base
-		end,
-		
-		function( cpanel, tab ) -- Concommand
-			local base = vgui.Create("DPanel", cpanel)
-			cpanel:AddItem(base)
-
-			base.text = vgui.Create("DLabel", base)
-			base.text:SetDark(true)
-			base.text:SetText("Console Command")
-
-			base.entry = vgui.Create("DTextEntry", base)
-			base.entry:SetValue(tab.Var)
-			base.entry:SetUpdateOnType(true)
-
-			base.entry.OnValueChange = function(self, val)
-				val = tostring(val)
-				if val then
-					tab.Var = val
-				end
-			end
-
-			base.PerformLayout = function()
-				base:SetHeight(48)
-
-				base.text:SetPos(10, 5)
-				base.text:SetWide(base:GetWide())
-
-				base.entry:SetSize(base:GetWide() - 10, 15)
-				base.entry:SetPos(5, 28)
-			end
-
-			return base
-		end,
-		
-		function( cpanel, tab ) -- Loop Start
-			local base = vgui.Create("DPanel", cpanel)
-			cpanel:AddItem(base)
-
-			base.text = vgui.Create("DLabel", base)
-			base.text:SetDark(true)
-			base.text:SetText("Loop Start (Repeat amount)")
-
-			base.entry = vgui.Create("DTextEntry", base)
-			base.entry:SetNumeric(true)
-			base.entry:SetValue(tab.Var)
-			base.entry:SetUpdateOnType(true)
-
-			base.entry.OnValueChange = function(self, val)
-				val = tonumber(val)
-				if val then
-					val = math.floor(val)
-					tab.Var = val
-				end
-			end
-
-			base.PerformLayout = function()
-				base:SetHeight(48)
-
-				base.text:SetPos(10, 5)
-				base.text:SetWide(base:GetWide())
-
-				base.entry:SetSize(base:GetWide() - 10, 15)
-				base.entry:SetPos(5, 28)
-			end
-
-			return base
-		end,
-		
-		function( cpanel, tab ) -- Loop end
-			local base = vgui.Create("DPanel", cpanel)
-			cpanel:AddItem(base)
-
-			base.text = vgui.Create("DLabel", base)
-			base.text:SetDark(true)
-			base.text:SetText("Loop End")
-
-			base.PerformLayout = function()
-				base:SetHeight(28)
-
-				base.text:SetPos(10, 5)
-				base.text:SetWide(base:GetWide())
-			end
-
-			return base
-		end
-	}
 
 	local startbutton = vgui.Create( "DButton", Panel )
 	startbutton:SetSize( 100, 20 )
@@ -297,9 +371,7 @@ local function MacroBuild( Panel )
 	startbutton:Dock( TOP )
 	startbutton:DockMargin( 0, 5, 0, 5 )
 
-	for id, tab in ipairs(MacroTable) do
-		UIBuild[tab.Type](Panel, tab)
-	end
+	MacroMenu( Panel )
 end
 
 hook.Add("PopulateToolMenu", "peak_macroconcommand", function ()
