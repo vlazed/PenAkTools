@@ -95,7 +95,7 @@ if ConFile:GetString() == "default" then
 		}
 	}
 else
-	
+
 end
 
 local function macro(step)
@@ -154,9 +154,14 @@ end )
 
 -------- UI Related functions --------
 
-local UIBuild = {
+local CYAN = Color(0, 230, 230)
+local ORANGE = Color(230, 200, 0)
+local WHITE = Color(230, 230, 230)
+
+local CreateStep = {
 	function( cpanel, tab, id ) -- Wait
 		local base = vgui.Create("DPanel", cpanel)
+		base:SetBackgroundColor(WHITE)
 		cpanel:AddItem(base)
 
 		base.text = vgui.Create("DLabel", base)
@@ -181,7 +186,7 @@ local UIBuild = {
 			self.text:SetPos(10, 5)
 			self.text:SetWide(self:GetWide())
 
-			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
 		end
 
@@ -190,6 +195,7 @@ local UIBuild = {
 		
 	function( cpanel, tab, id ) -- Concommand
 		local base = vgui.Create("DPanel", cpanel)
+		base:SetBackgroundColor(CYAN)
 		cpanel:AddItem(base)
 
 		base.text = vgui.Create("DLabel", base)
@@ -213,7 +219,7 @@ local UIBuild = {
 			self.text:SetPos(10, 5)
 			self.text:SetWide(self:GetWide())
 
-			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
 		end
 
@@ -222,6 +228,7 @@ local UIBuild = {
 		
 	function( cpanel, tab, id ) -- Loop Start
 		local base = vgui.Create("DPanel", cpanel)
+		base:SetBackgroundColor(ORANGE)
 		cpanel:AddItem(base)
 
 		base.text = vgui.Create("DLabel", base)
@@ -247,7 +254,7 @@ local UIBuild = {
 			self.text:SetPos(10, 5)
 			self.text:SetWide(self:GetWide())
 
-			self.entry:SetSize(self:GetWide() - 10, 15)
+			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
 		end
 
@@ -256,6 +263,7 @@ local UIBuild = {
 		
 	function( cpanel, tab, id ) -- Loop end
 		local base = vgui.Create("DPanel", cpanel)
+		base:SetBackgroundColor(ORANGE)
 		cpanel:AddItem(base)
 
 		base.text = vgui.Create("DLabel", base)
@@ -273,6 +281,85 @@ local UIBuild = {
 	end
 }
 
+local RebuildMacroSteps
+
+local function UIBuild(cpanel, tab, id)
+	local panel = CreateStep[tab.Type](cpanel, tab, id)
+
+	panel.buttonup = vgui.Create("DButton", panel)
+	panel.buttonup:SetSize(20, 10)
+	panel.buttonup:SetText("^")
+
+	panel.buttonup.PerformLayout = function(butt)
+		butt:SetPos(panel:GetWide() - 30, 5)
+	end
+
+	panel.buttonup.DoClick = function()
+		local temp = MacroTable[id]
+
+		MacroTable[id] = MacroTable[id - 1] 
+		MacroTable[id - 1] = temp
+
+		RebuildMacroSteps(cpanel)
+	end
+
+	panel.buttonup:SetVisible(false)
+
+
+
+	panel.buttondown = vgui.Create("DButton", panel)
+	panel.buttondown:SetSize(20, 10)
+	panel.buttondown:SetText("v")
+
+	panel.buttondown.PerformLayout = function(butt)
+		butt:SetPos(panel:GetWide() - 30, panel:GetTall() - 15)
+	end
+
+	panel.buttondown.DoClick = function()
+		local temp = MacroTable[id]
+
+		MacroTable[id] = MacroTable[id + 1] 
+		MacroTable[id + 1] = temp
+
+		RebuildMacroSteps(cpanel)
+	end
+
+	panel.buttondown:SetVisible(false)
+
+
+
+	panel.OnCursorEntered = function()
+		if id - 1 > 0 then
+			panel.buttonup:SetVisible(true)
+		end
+
+		if MacroTable[id + 1] then
+			panel.buttondown:SetVisible(true)
+		end
+	end
+
+	panel.buttonup.OnCursorEntered = panel.OnCursorEntered
+	panel.buttondown.OnCursorEntered = panel.OnCursorEntered
+
+	panel.OnCursorExited = function(panel)
+		panel.buttonup:SetVisible(false)
+		panel.buttondown:SetVisible(false)
+	end
+
+	return panel
+end
+
+RebuildMacroSteps = function(macropanel) -- Rebuilds steps without clearing the MacroTable
+	if not IsValid(macropanel) then return end
+	macropanel:Clear()
+	macropanel.items = {}
+
+	for id, tab in ipairs(MacroTable) do
+		local panel = UIBuild(macropanel, tab, id)
+		table.insert( macropanel.items, panel )
+	end
+end
+
 local function MacroMenu( cpanel )
 	local macrobase = vgui.Create("DPanelList", cpanel)
 	macrobase:SetPaintBackgroundEnabled(false)
@@ -282,7 +369,8 @@ local function MacroMenu( cpanel )
 	macrobase.items = {}
 
 	for id, tab in ipairs(MacroTable) do
-		table.insert( macrobase.items, UIBuild[tab.Type](macrobase, tab, id) )
+		local panel = UIBuild(macrobase, tab, id)
+		table.insert( macrobase.items, panel )
 	end
 
 	macrobase.OldPerform = macrobase.PerformLayout
@@ -311,7 +399,7 @@ local function MacroMenu( cpanel )
 			end
 
 			table.insert( MacroTable, tab )
-			table.insert( macrobase.items, UIBuild[tab.Type](macrobase, tab, #MacroTable) )
+			table.insert( macrobase.items, UIBuild(macrobase, tab, #MacroTable) )
 		end
 
 		local dmenu = DermaMenu()
@@ -328,6 +416,8 @@ local function MacroMenu( cpanel )
 
 	buttonbase.removebutton.DoClick = function()
 		local id = #MacroTable
+		if id < 1 then return end
+
 		MacroTable[id] = nil
 
 		macrobase.items[id]:Remove()
