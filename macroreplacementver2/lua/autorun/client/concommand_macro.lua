@@ -7,6 +7,8 @@ local Step, CurLoop = 0, 0
 local Owner = Owner or LocalPlayer()
 
 local ConFile  = CreateClientConVar("peak_concommac_file", "default", true, false, "Name of the currently selected file with Macro instructions")
+local SuppressMessages  = CreateClientConVar("peak_concommac_messageoff", 0, true, false, "Turn off chat messages from Console Command Macro")
+local SuppressSounds  = CreateClientConVar("peak_concommac_soundoff", 0, true, false, "Turn off sounds from Console Command Macro")
 
 local Action = {
 	function(var, step) -- Wait
@@ -58,45 +60,41 @@ print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
 }
 
 -- test
-if ConFile:GetString() == "default" then
-	MacroTable = {
-		{
-			Type = 1,
-			Var = 1
-		},
+local DefaultMacro = {
+	{
+		Type = 1,
+		Var = 1
+	},
 
-		{
-			Type = 3,
-			Var = 100
-		},
+	{
+		Type = 3,
+		Var = 100
+	},
 
-		{
-			Type = 2,
-			Var = "+attack"
-		},
+	{
+		Type = 2,
+		Var = ""
+	},
 
-		{
-			Type = 1,
-			Var = 0.01
-		},
+	{
+		Type = 1,
+		Var = 0.01
+	},
 
-		{
-			Type = 2,
-			Var = "-attack"
-		},
+	{
+		Type = 2,
+		Var = ""
+	},
 
-		{
-			Type = 1,
-			Var = 0.01
-		},
+	{
+		Type = 1,
+		Var = 0.01
+	},
 
-		{
-			Type = 4
-		}
+	{
+		Type = 4
 	}
-else
-
-end
+}
 
 local function macro(step)
 	while true do
@@ -107,14 +105,16 @@ local function macro(step)
 				step = Action[a.Type](a.Var, step) + 1
 				print("Step valid, step now: " .. step)
 			else
-				Owner:ChatPrint("Console Macro finished!")
+				if not SuppressMessages:GetBool() then Owner:ChatPrint("Console Macro finished!") end
+				if not SuppressSounds:GetBool() then surface.PlaySound("buttons/button1.wav") end
 				Working = false
 				Stop = false
 				CurLoop = 0
 				Loops = {}
 			end
 		else
-			Owner:ChatPrint("Console Macro stopped!")
+			if not SuppressMessages:GetBool() then Owner:ChatPrint("Console Macro stopped!") end
+			if not SuppressSounds:GetBool() then surface.PlaySound("buttons/button6.wav") end
 			Working = false
 			Stop = false
 			CurLoop = 0
@@ -141,7 +141,8 @@ concommand.Add( "peak_mac_start", function()
 	if not Owner or not IsValid(Owner) then Owner = LocalPlayer() end
 
 	if not Working then
-		Owner:ChatPrint("Console Macro starting!")
+		if not SuppressMessages:GetBool() then Owner:ChatPrint("Console Macro starting!") end
+		if not SuppressSounds:GetBool() then surface.PlaySound("buttons/blip1.wav") end
 		Working = true
 		Stop = false
 		Step = 1
@@ -157,6 +158,7 @@ end )
 local CYAN = Color(0, 230, 230)
 local ORANGE = Color(230, 200, 0)
 local WHITE = Color(230, 230, 230)
+local MacroPanel
 
 local CreateStep = {
 	function( cpanel, tab, id ) -- Wait
@@ -295,6 +297,8 @@ local function UIBuild(cpanel, tab, id)
 	end
 
 	panel.buttonup.DoClick = function()
+		if Working then return end
+
 		local temp = MacroTable[id]
 
 		MacroTable[id] = MacroTable[id - 1] 
@@ -316,6 +320,8 @@ local function UIBuild(cpanel, tab, id)
 	end
 
 	panel.buttondown.DoClick = function()
+		if Working then return end
+
 		local temp = MacroTable[id]
 
 		MacroTable[id] = MacroTable[id + 1] 
@@ -329,6 +335,8 @@ local function UIBuild(cpanel, tab, id)
 
 
 	panel.OnCursorEntered = function()
+		if Working then return end
+
 		if id - 1 > 0 then
 			panel.buttonup:SetVisible(true)
 		end
@@ -357,6 +365,134 @@ RebuildMacroSteps = function(macropanel) -- Rebuilds steps without clearing the 
 	for id, tab in ipairs(MacroTable) do
 		local panel = UIBuild(macropanel, tab, id)
 		table.insert( macropanel.items, panel )
+	end
+end
+
+local savepath = "cocomacro/"
+local savefolder = "cocomacro"
+
+do -- initialize the table
+
+
+local var = ConFile:GetString()
+
+if var == "default" then
+	MacroTable = table.Copy(DefaultMacro)
+else
+	local dname = var .. ".txt"
+
+	if not file.Exists(savepath .. dname, "DATA") then
+		MacroTable = table.Copy(DefaultMacro)
+	else
+		local rdata = file.Read(savepath .. dname, "DATA")
+		rdata = util.JSONToTable(rdata)
+
+		MacroTable = rdata
+	end
+end
+
+
+end
+
+cvars.AddChangeCallback( "peak_concommac_file", function(name, old, new)
+	if new == "default" then
+		MacroTable = table.Copy(DefaultMacro)
+	else
+		local dname = new .. ".txt"
+
+		if not file.Exists(savepath .. dname, "DATA") then
+			return
+		end
+
+		local rdata = file.Read(savepath .. dname, "DATA")
+		rdata = util.JSONToTable(rdata)
+
+		MacroTable = rdata
+	end
+
+	if MacroPanel then
+		RebuildMacroSteps(MacroPanel)
+	end
+end )
+
+local function CreateSavePanel( cpanel )
+	local base = vgui.Create( "DPanel" )
+	base:SetTall(70)
+	base:SetDrawBackground(false)
+	cpanel:AddItem(base)
+
+	base.box = vgui.Create("DComboBox", base)
+	base.box:SetPos(0, 5)
+
+	base.box:AddChoice("Default", "default")
+
+	local files = file.Find(savepath .. "*.txt", "DATA")
+	for k, file in ipairs(files) do
+		file = string.sub(file, 1, -5)
+		if string.lower(file) == "default" then continue end
+
+		base.box:AddChoice(file, file)
+	end
+
+	base.box.OnSelect = function(self, id, val, data)
+		if data == "default" then
+			Owner:ConCommand("peak_concommac_file " .. data)
+			return
+		end
+
+		local dname = data .. ".txt"
+
+		if not file.Exists(savepath .. dname, "DATA") then
+			self:RemoveChoice(id)
+			notification.AddLegacy("ERROR: Macro does not exist!", NOTIFY_ERROR, 5)
+			surface.PlaySound("buttons/button10.wav")
+			return
+		end
+
+		Owner:ConCommand("peak_concommac_file " .. data)
+	end
+
+	base.butt = vgui.Create("DButton", base)
+	base.butt:SetSize(20, 20)
+	base.butt:SetText("Save")
+
+	base.butt.DoClick = function(self)
+		if not file.IsDir( savefolder, "DATA" ) then
+			file.CreateDir( savefolder )
+		end
+
+		local json = util.TableToJSON( MacroTable )
+		local num = 1
+		while file.Exists( savepath .. "macro" .. num .. ".txt", "DATA" ) do
+			num = num + 1
+		end
+		local name = "macro" .. num
+		file.Write( savepath .. name .. ".txt", json )
+
+		notification.AddLegacy("Macro saved!", NOTIFY_GENERIC, 5)
+		surface.PlaySound("buttons/button14.wav")
+
+		base.box:AddChoice(name, name)
+	end
+
+	base.supchat = vgui.Create("DCheckBoxLabel", base)
+	base.supchat:SetDark(true)
+	base.supchat:SetText("Suppress chat messages")
+	base.supchat:SetConVar("peak_concommac_messageoff")
+	base.supchat:SetPos(0, 30)
+
+	base.supsnd = vgui.Create("DCheckBoxLabel", base)
+	base.supsnd:SetDark(true)
+	base.supsnd:SetText("Suppress sounds")
+	base.supsnd:SetConVar("peak_concommac_soundoff")
+	base.supsnd:SetPos(0, 50)
+
+	base.PerformLayout = function()
+
+		base.box:SetSize(base:GetWide() - 30, 20)
+
+		base.butt:SetPos(base:GetWide() - 25, 5)
+
 	end
 end
 
@@ -391,6 +527,8 @@ local function MacroMenu( cpanel )
 
 	buttonbase.addbutton.DoClick = function()
 		local function ExpandMacro(typeid)
+			if Working then return end
+
 			local tab
 			if typeid ~= 4 then
 				tab = { Type = typeid, Var = "" }
@@ -415,6 +553,8 @@ local function MacroMenu( cpanel )
 	buttonbase.removebutton:SetSize(20, 20)
 
 	buttonbase.removebutton.DoClick = function()
+		if Working then return end
+
 		local id = #MacroTable
 		if id < 1 then return end
 
@@ -427,6 +567,8 @@ local function MacroMenu( cpanel )
 	buttonbase.removebutton.DoRightClick = function()
 		local dmenu = DermaMenu()
 		dmenu:AddOption( "Delete every step", function()
+			if Working then return end
+
 			for id, panel in ipairs(macrobase.items) do
 				panel:Remove()
 			end
@@ -445,11 +587,13 @@ local function MacroMenu( cpanel )
 		self.removebutton:SetPos(self:GetWide()/2 + 10, 10)
 	end
 
-	return base, buttonbase
+	return macrobase, buttonbase
 end
 
 local function MacroBuild( Panel )
 	if not Owner or not IsValid(Owner) then Owner = LocalPlayer() end
+
+	CreateSavePanel(Panel)
 
 	local startbutton = vgui.Create( "DButton", Panel )
 	startbutton:SetSize( 100, 20 )
@@ -458,10 +602,9 @@ local function MacroBuild( Panel )
 	startbutton.DoClick = function()
 		Owner:ConCommand( "peak_mac_start" )
 	end
-	startbutton:Dock( TOP )
-	startbutton:DockMargin( 0, 5, 0, 5 )
+	Panel:AddItem(startbutton)
 
-	MacroMenu( Panel )
+	MacroPanel = MacroMenu( Panel )
 end
 
 hook.Add("PopulateToolMenu", "peak_macroconcommand", function ()
