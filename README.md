@@ -98,9 +98,9 @@ Chatty: Allows you to mimic someone saying stuff in gmod chat. Why? Why not?
 
 Soft lamps grabber (clientside): Finds all soft lamps and opens their properties menu. I don't think anyone would find it useful apart from me lol.
 
-
-
+--------
 I've also started making some small Python scripts for Blender, that allow me to speed up my video creation process in VSE:
+
 BLENDER ADDONS
 ==========
 All stuff in this folder is some sort of script for Blender that can be installed as an addon to it:
