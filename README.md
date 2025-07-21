@@ -97,3 +97,18 @@ Various weird scripts I have that are meant to be run through lua_run or lua_run
 Chatty: Allows you to mimic someone saying stuff in gmod chat. Why? Why not?
 
 Soft lamps grabber (clientside): Finds all soft lamps and opens their properties menu. I don't think anyone would find it useful apart from me lol.
+
+--------
+I've also started making some small Python scripts for Blender, that allow me to speed up my video creation process in VSE:
+
+BLENDER ADDONS
+==========
+All stuff in this folder is some sort of script for Blender that can be installed as an addon to it:
+
+Fade in/out script
+==========
+Blender already has a feature to automatically do fade in and out on VSE strips, though mine allows to set fade in/out time in frames, and also offset it by a set amount of frames. Quite niche.
+
+"Text Timer" script
+==========
+This is meant to work with Text strips, it will set their duration to about the time it should take to read out that text. It is possible to set time it takes per word, per "sentence" (will add time for every . ! ? that's not at the end of the text) and per commma that's not at the end of the sentence. By default it uses 0.3 seconds per word, and 0.1 seconds per sentences and commas. 0.3 seconds per word is used based on an assumption that average person reads 200 words per minute, so 200/60 = ~3,33 words per second, and 1/3,33 = 0,3003 seconds per word.
