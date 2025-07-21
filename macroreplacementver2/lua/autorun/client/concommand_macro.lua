@@ -10,6 +10,11 @@ local ConFile  = CreateClientConVar("peak_concommac_file", "default", true, fals
 local SuppressMessages  = CreateClientConVar("peak_concommac_messageoff", 0, true, false, "Turn off chat messages from Console Command Macro")
 local SuppressSounds  = CreateClientConVar("peak_concommac_soundoff", 0, true, false, "Turn off sounds from Console Command Macro")
 
+local WAIT = 1
+local CONCOMMAND = 2
+local LOOPSTART = 3
+local LOOPEND = 4
+
 local Action = {
 	function(var, step) -- Wait
 		var = tonumber(var)
@@ -24,11 +29,13 @@ local Action = {
 		return step
 	end,
 
+
 	function(var, step) -- Concommand
 		Owner:ConCommand( var )
 
 		return step
 	end,
+
 
 	function(var, step) -- Loop start
 		var = tonumber(var)
@@ -39,17 +46,20 @@ local Action = {
 			Repeats = var - 1,
 			Jump = step
 		}
-print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
+--		print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
 		return step
 	end,
 
+
 	function(var, step) -- Loop end
-		local Repeats = Loops[CurLoop].Repeats print("Loop end, repeats left: " .. Repeats)
+		local Repeats = Loops[CurLoop].Repeats
+--		print("Loop end, repeats left: " .. Repeats)
 		if Repeats > 0 then
 			step = Loops[CurLoop].Jump
 			Loops[CurLoop].Repeats = Repeats - 1
 		else
-			Loops[CurLoop] = nil print("Loop " .. CurLoop .. " done")
+			Loops[CurLoop] = nil
+--			print("Loop " .. CurLoop .. " done")
 			if CurLoop > 0 then
 				CurLoop = CurLoop - 1
 			end
@@ -59,51 +69,52 @@ print("Setting loop " .. CurLoop .. ", set to repeat for " .. var)
 	end
 }
 
--- test
+-- Default Macro Setup
 local DefaultMacro = {
 	{
-		Type = 1,
+		Type = WAIT,
 		Var = 1
 	},
 
 	{
-		Type = 3,
+		Type = LOOPSTART,
 		Var = 100
 	},
 
 	{
-		Type = 2,
+		Type = CONCOMMAND,
 		Var = ""
 	},
 
 	{
-		Type = 1,
+		Type = WAIT,
 		Var = 0.01
 	},
 
 	{
-		Type = 2,
+		Type = CONCOMMAND,
 		Var = ""
 	},
 
 	{
-		Type = 1,
+		Type = WAIT,
 		Var = 0.01
 	},
 
 	{
-		Type = 4
+		Type = LOOPEND
 	}
 }
 
 local function macro(step)
 	while true do
-		step = coroutine.yield(step) print("Cor enter, step: " .. step)
+		step = coroutine.yield(step)
+--		print("Cor enter, step: " .. step)
 		if step and not Stop then
-			if MacroTable[step] then
-				local a = MacroTable[step]
+			local a = MacroTable[step]
+			if a then
 				step = Action[a.Type](a.Var, step) + 1
-				print("Step valid, step now: " .. step)
+--				print("Step valid, step now: " .. step)
 			else
 				if not SuppressMessages:GetBool() then Owner:ChatPrint("Console Macro finished!") end
 				if not SuppressSounds:GetBool() then surface.PlaySound("buttons/button1.wav") end
@@ -128,8 +139,8 @@ local cor = coroutine.create(macro)
 local function MacroTick()
 	if Working then
 		local b, step = coroutine.resume(cor, Step)
-		if not b then print (b, step) end
-		if b and step then
+		assert(b, step)
+		if step then
 			Step = step
 		end
 	end
@@ -146,10 +157,10 @@ concommand.Add( "peak_mac_start", function()
 		Working = true
 		Stop = false
 		Step = 1
-		print("start")
+--		print("start")
 	else
 		Stop = true
-		print("manual stop")
+--		print("manual stop")
 	end
 end )
 
@@ -158,8 +169,14 @@ end )
 local CYAN = Color(0, 230, 230)
 local ORANGE = Color(230, 200, 0)
 local WHITE = Color(230, 230, 230)
+local RED = Color(255, 0, 0)
+local DnDTag = "PEAKCONCOMMANDMACRO"
 local MacroPanel
 
+
+-----------------------
+--MACRO PANEL CREATION
+-----------------------
 local CreateStep = {
 	function( cpanel, tab, id ) -- Wait
 		local base = vgui.Create("DPanel", cpanel)
@@ -194,7 +211,8 @@ local CreateStep = {
 
 		return base
 	end,
-		
+
+
 	function( cpanel, tab, id ) -- Concommand
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(CYAN)
@@ -207,11 +225,27 @@ local CreateStep = {
 		base.entry = vgui.Create("DTextEntry", base)
 		base.entry:SetValue(tab.Var)
 		base.entry:SetUpdateOnType(true)
+		base.entry:SetTextColor(color_black)
 
 		base.entry.OnValueChange = function(self, val)
 			val = tostring(val)
 			if val then
 				tab.Var = val
+			end
+
+			local boom = string.Explode("[ ;]+", val, true)
+
+			local restricted = {}
+			for k, str in ipairs(boom) do
+				if IsConCommandBlocked(str) then restricted[#restricted+1] = str end
+			end
+
+			if #restricted > 0 then
+				base.entry:SetTextColor(RED)
+				base.entry:SetTooltip("Following commands can't be executed by Lua: " .. table.concat(restricted, ", "))
+			else
+				base.entry:SetTextColor(color_black)
+				base.entry:SetTooltip(nil)
 			end
 		end
 
@@ -227,7 +261,8 @@ local CreateStep = {
 
 		return base
 	end,
-		
+
+
 	function( cpanel, tab, id ) -- Loop Start
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(ORANGE)
@@ -262,7 +297,9 @@ local CreateStep = {
 
 		return base
 	end,
-		
+
+
+
 	function( cpanel, tab, id ) -- Loop end
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(ORANGE)
@@ -287,72 +324,9 @@ local RebuildMacroSteps
 
 local function UIBuild(cpanel, tab, id)
 	local panel = CreateStep[tab.Type](cpanel, tab, id)
-
-	panel.buttonup = vgui.Create("DButton", panel)
-	panel.buttonup:SetSize(20, 10)
-	panel.buttonup:SetText("^")
-
-	panel.buttonup.PerformLayout = function(butt)
-		butt:SetPos(panel:GetWide() - 30, 5)
-	end
-
-	panel.buttonup.DoClick = function()
-		if Working then return end
-
-		local temp = MacroTable[id]
-
-		MacroTable[id] = MacroTable[id - 1] 
-		MacroTable[id - 1] = temp
-
-		RebuildMacroSteps(cpanel)
-	end
-
-	panel.buttonup:SetVisible(false)
-
-
-
-	panel.buttondown = vgui.Create("DButton", panel)
-	panel.buttondown:SetSize(20, 10)
-	panel.buttondown:SetText("v")
-
-	panel.buttondown.PerformLayout = function(butt)
-		butt:SetPos(panel:GetWide() - 30, panel:GetTall() - 15)
-	end
-
-	panel.buttondown.DoClick = function()
-		if Working then return end
-
-		local temp = MacroTable[id]
-
-		MacroTable[id] = MacroTable[id + 1] 
-		MacroTable[id + 1] = temp
-
-		RebuildMacroSteps(cpanel)
-	end
-
-	panel.buttondown:SetVisible(false)
-
-
-
-	panel.OnCursorEntered = function()
-		if Working then return end
-
-		if id - 1 > 0 then
-			panel.buttonup:SetVisible(true)
-		end
-
-		if MacroTable[id + 1] then
-			panel.buttondown:SetVisible(true)
-		end
-	end
-
-	panel.buttonup.OnCursorEntered = panel.OnCursorEntered
-	panel.buttondown.OnCursorEntered = panel.OnCursorEntered
-
-	panel.OnCursorExited = function(panel)
-		panel.buttonup:SetVisible(false)
-		panel.buttondown:SetVisible(false)
-	end
+	panel.id = id
+	panel.tab = tab
+	panel:Droppable(DnDTag)
 
 	return panel
 end
@@ -496,6 +470,33 @@ local function CreateSavePanel( cpanel )
 	end
 end
 
+local function DragDrop(self, panel, drop, _, x, y)
+	if drop then
+		local items = self.items
+		local maxitem = #items
+
+		for k, p in ipairs(panel) do
+			local newid = 1
+			local ymin = 0
+
+			for k, cp in ipairs(items) do
+				if k == p.id then continue end
+				local ythis = cp:GetY() + 10
+				if (ythis >= ymin) and (y >= ythis) then
+					ymin = ythis
+					newid = k + 1
+				end
+			end
+			if p.id < newid then newid = newid - 1 end
+			if newid > maxitem then newid = maxitem end
+
+			table.remove(MacroTable, p.id)
+			table.insert(MacroTable, newid, p.tab)
+			RebuildMacroSteps(self)
+		end
+	end
+end
+
 local function MacroMenu( cpanel )
 	local macrobase = vgui.Create("DPanelList", cpanel)
 	macrobase:SetPaintBackgroundEnabled(false)
@@ -503,6 +504,7 @@ local function MacroMenu( cpanel )
 	cpanel:AddItem(macrobase)
 
 	macrobase.items = {}
+	macrobase:Receiver(DnDTag, DragDrop)
 
 	for id, tab in ipairs(MacroTable) do
 		local panel = UIBuild(macrobase, tab, id)
