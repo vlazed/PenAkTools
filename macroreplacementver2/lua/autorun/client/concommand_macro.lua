@@ -389,6 +389,8 @@ cvars.AddChangeCallback( "peak_concommac_file", function(name, old, new)
 	end
 end )
 
+local function RefreshMacroList() end
+
 local function CreateSavePanel( cpanel )
 	local base = vgui.Create( "DPanel" )
 	base:SetTall(70)
@@ -398,15 +400,20 @@ local function CreateSavePanel( cpanel )
 	base.box = vgui.Create("DComboBox", base)
 	base.box:SetPos(0, 5)
 
-	base.box:AddChoice("Default", "default")
+	function RefreshMacroList()
+		base.box:Clear()
 
-	local files = file.Find(savepath .. "*.txt", "DATA")
-	for k, file in ipairs(files) do
-		file = string.sub(file, 1, -5)
-		if string.lower(file) == "default" then continue end
+		base.box:AddChoice("Default", "default")
+		local files = file.Find(savepath .. "*.txt", "DATA")
+		for k, file in ipairs(files) do
+			file = string.sub(file, 1, -5)
+			if string.lower(file) == "default" then continue end
 
-		base.box:AddChoice(file, file)
+			base.box:AddChoice(file, file)
+		end
 	end
+
+	RefreshMacroList()
 
 	base.box.OnSelect = function(self, id, val, data)
 		if data == "default" then
@@ -431,22 +438,115 @@ local function CreateSavePanel( cpanel )
 	base.butt:SetText("Save")
 
 	base.butt.DoClick = function(self)
-		if not file.IsDir( savefolder, "DATA" ) then
-			file.CreateDir( savefolder )
+		local savew = vgui.Create("DFrame")
+		savew:SetSize(200, 105)
+		savew:Center()
+		savew:MakePopup()
+		savew:DoModal()
+		savew:SetTitle("Save Macro")
+		savew:SetBackgroundBlur(true)
+
+		local wx, wy = savew:GetSize()
+
+		savew.label = vgui.Create("DLabel", savew)
+		savew.label:SetText("Enter Macro name to be saved:")
+		savew.label:SizeToContents()
+		savew.label:SetPos(wx/2 - savew.label:GetWide()/2, 30)
+
+		savew.entry = vgui.Create("DTextEntry", savew)
+		savew.entry:SetSize(190, 20)
+		savew.entry:SetPos(5, 50)
+
+		savew.sbutt = vgui.Create("DButton", savew)
+		savew.sbutt:SetText("Save")
+		savew.sbutt:SetSize(60, 20)
+		savew.sbutt:SetPos(5, 76)
+		savew.sbutt.DoClick = function(self)
+			local name = string.Trim(savew.entry:GetText())
+			if name == "" or string.lower(name) == "default" then return end
+
+			if not file.IsDir( savefolder, "DATA" ) then
+				file.CreateDir( savefolder )
+			end
+
+			local json = util.TableToJSON( MacroTable )
+			file.Write( savepath .. name .. ".txt", json )
+
+			notification.AddLegacy("Macro saved!", NOTIFY_GENERIC, 5)
+			surface.PlaySound("buttons/button14.wav")
+
+			RefreshMacroList()
+			savew:Close()
 		end
 
-		local json = util.TableToJSON( MacroTable )
-		local num = 1
-		while file.Exists( savepath .. "macro" .. num .. ".txt", "DATA" ) do
-			num = num + 1
+		savew.cbutt = vgui.Create("DButton", savew)
+		savew.cbutt:SetText("Cancel")
+		savew.cbutt:SetSize(60, 20)
+		savew.cbutt:SetPos(wx - 65, 76)
+		savew.cbutt.DoClick = function()
+			savew:Close()
 		end
-		local name = "macro" .. num
-		file.Write( savepath .. name .. ".txt", json )
 
-		notification.AddLegacy("Macro saved!", NOTIFY_GENERIC, 5)
-		surface.PlaySound("buttons/button14.wav")
+	end
 
-		base.box:AddChoice(name, name)
+	base.editb = vgui.Create("DButton", base)
+	base.editb:SetSize(20, 20)
+	base.editb:SetText("Edit")
+
+	base.editb.DoClick = function()
+		local frame = vgui.Create("DFrame")
+		frame:SetSize(300, 200)
+		frame:Center()
+		frame:MakePopup()
+		frame:DoModal()
+		frame:SetTitle("Macro Organizer")
+		frame:SetBackgroundBlur(true)
+
+		frame.OnClose = function()
+			RefreshMacroList()
+		end
+
+		local wx, wy = frame:GetSize()
+
+		frame.list = vgui.Create("DListView", frame)
+		frame.list:SetSize(150, wy - 25)
+		frame.list:SetPos(0, 25)
+		frame.list:AddColumn("Macro")
+		frame.list:SetMultiSelect(false)
+
+		local files = file.Find(savepath .. "*.txt", "DATA")
+		for k, file in ipairs(files) do
+			file = string.sub(file, 1, -5)
+			if string.lower(file) == "default" then continue end
+
+			frame.list:AddLine(file)
+		end
+
+		frame.delete = vgui.Create("DButton", frame)
+		frame.delete:SetSize(70, 30)
+		frame.delete:SetText("Delete")
+		frame.delete:SetPos(190, 60)
+
+		frame.delete.DoClick = function()
+			local selected, pnl = frame.list:GetSelectedLine()
+			if not selected then return end
+
+			local name = savepath .. pnl:GetValue(1) .. ".txt"
+
+			if file.Exists(name, "DATA") then
+				file.Delete(name)
+			end
+			frame.list:RemoveLine(selected)
+		end
+
+		frame.exit = vgui.Create("DButton", frame)
+		frame.exit:SetSize(70, 30)
+		frame.exit:SetText("Close")
+		frame.exit:SetPos(190, 120)
+
+		frame.exit.DoClick = function()
+			frame:Close()
+		end
 	end
 
 	base.supchat = vgui.Create("DCheckBoxLabel", base)
@@ -463,63 +563,15 @@ local function CreateSavePanel( cpanel )
 
 	base.PerformLayout = function()
 
-		base.box:SetSize(base:GetWide() - 30, 20)
+		base.box:SetSize(base:GetWide() - 55, 20)
 
-		base.butt:SetPos(base:GetWide() - 25, 5)
+		base.butt:SetPos(base:GetWide() - 50, 5)
+		base.editb:SetPos(base:GetWide() - 25, 5)
 
 	end
 end
 
-local function DragDrop(self, panel, drop, _, x, y)
-	if drop then
-		local items = self.items
-		local maxitem = #items
-
-		for k, p in ipairs(panel) do
-			local newid = 1
-			local ymin = 0
-
-			for k, cp in ipairs(items) do
-				if k == p.id then continue end
-				local ythis = cp:GetY() + 10
-				if (ythis >= ymin) and (y >= ythis) then
-					ymin = ythis
-					newid = k + 1
-				end
-			end
-			if p.id < newid then newid = newid - 1 end
-			if newid > maxitem then newid = maxitem end
-
-			table.remove(MacroTable, p.id)
-			table.insert(MacroTable, newid, p.tab)
-			RebuildMacroSteps(self)
-		end
-	end
-end
-
-local function MacroMenu( cpanel )
-	local macrobase = vgui.Create("DPanelList", cpanel)
-	macrobase:SetPaintBackgroundEnabled(false)
-	macrobase:SetSpacing(6)
-	cpanel:AddItem(macrobase)
-
-	macrobase.items = {}
-	macrobase:Receiver(DnDTag, DragDrop)
-
-	for id, tab in ipairs(MacroTable) do
-		local panel = UIBuild(macrobase, tab, id)
-		table.insert( macrobase.items, panel )
-	end
-
-	macrobase.OldPerform = macrobase.PerformLayout
-
-	macrobase.PerformLayout = function(self)
-		self:OldPerform()
-		self:SizeToChildren(false, true)
-	end
-
-
-
+local function CreateExpansionButtons(cpanel, macrobase)
 	local buttonbase = vgui.Create("Panel", cpanel)
 	cpanel:AddItem(buttonbase)
 
@@ -588,6 +640,61 @@ local function MacroMenu( cpanel )
 
 		self.removebutton:SetPos(self:GetWide()/2 + 10, 10)
 	end
+
+	return buttonbase
+end
+
+local function DragDrop(self, panel, drop, _, x, y)
+	if drop then
+		local items = self.items
+		local maxitem = #items
+
+		for k, p in ipairs(panel) do
+			local newid = 1
+			local ymin = 0
+
+			for k, cp in ipairs(items) do
+				if k == p.id then continue end
+				local ythis = cp:GetY() + 10
+				if (ythis >= ymin) and (y >= ythis) then
+					ymin = ythis
+					newid = k + 1
+				end
+			end
+			if p.id < newid then newid = newid - 1 end
+			if newid > maxitem then newid = maxitem end
+
+			table.remove(MacroTable, p.id)
+			table.insert(MacroTable, newid, p.tab)
+			RebuildMacroSteps(self)
+		end
+	end
+end
+
+local function MacroMenu( cpanel )
+	local macrobase = vgui.Create("DPanelList", cpanel)
+	macrobase:SetPaintBackgroundEnabled(false)
+	macrobase:SetSpacing(6)
+	cpanel:AddItem(macrobase)
+
+	macrobase.items = {}
+	macrobase:Receiver(DnDTag, DragDrop)
+
+	for id, tab in ipairs(MacroTable) do
+		local panel = UIBuild(macrobase, tab, id)
+		table.insert( macrobase.items, panel )
+	end
+
+	macrobase.OldPerform = macrobase.PerformLayout
+
+	macrobase.PerformLayout = function(self)
+		self:OldPerform()
+		self:SizeToChildren(false, true)
+	end
+
+
+
+	buttonbase = CreateExpansionButtons(cpanel, macrobase)
 
 	return macrobase, buttonbase
 end
