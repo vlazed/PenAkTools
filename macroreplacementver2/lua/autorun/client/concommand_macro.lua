@@ -170,9 +170,14 @@ local CYAN = Color(0, 230, 230)
 local ORANGE = Color(230, 200, 0)
 local WHITE = Color(230, 230, 230)
 local RED = Color(255, 0, 0)
+local GRAY = Color(230, 230, 230)
+local COLORADD_HOVER = Color(13, 13, 13)
 local DnDTag = "PEAKCONCOMMANDMACRO"
 local MacroPanel
 
+local function AddColors(col1, col2)
+	return Color(col1.r + col2.r, col1.g + col2.g, col1.b + col2.b)
+end
 
 -----------------------
 --MACRO PANEL CREATION
@@ -182,6 +187,10 @@ local CreateStep = {
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(WHITE)
 		cpanel:AddItem(base)
+
+		base.image = vgui.Create("DImage", base)
+		base.image:SetImage("icon16/clock.png")
+		base.image:SizeToContents()
 
 		base.text = vgui.Create("DLabel", base)
 		base.text:SetDark(true)
@@ -202,11 +211,20 @@ local CreateStep = {
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
-			self.text:SetPos(10, 5)
+			self.image:SetPos(10, 7)
+			self.text:SetPos(30, 5)
 			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+		end
+
+		base.OnCursorEntered = function(self)
+			self:SetBackgroundColor(AddColors(WHITE, COLORADD_HOVER))
+		end
+
+		base.OnCursorExited = function(self)
+			self:SetBackgroundColor(WHITE)
 		end
 
 		return base
@@ -217,6 +235,10 @@ local CreateStep = {
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(CYAN)
 		cpanel:AddItem(base)
+
+		base.image = vgui.Create("DImage", base)
+		base.image:SetImage("icon16/application_xp_terminal.png")
+		base.image:SizeToContents()
 
 		base.text = vgui.Create("DLabel", base)
 		base.text:SetDark(true)
@@ -252,11 +274,20 @@ local CreateStep = {
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
-			self.text:SetPos(10, 5)
+			self.image:SetPos(10, 7)
+			self.text:SetPos(30, 5)
 			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+		end
+
+		base.OnCursorEntered = function(self)
+			self:SetBackgroundColor(AddColors(CYAN, COLORADD_HOVER))
+		end
+
+		base.OnCursorExited = function(self)
+			self:SetBackgroundColor(CYAN)
 		end
 
 		return base
@@ -267,6 +298,10 @@ local CreateStep = {
 		local base = vgui.Create("DPanel", cpanel)
 		base:SetBackgroundColor(ORANGE)
 		cpanel:AddItem(base)
+
+		base.image = vgui.Create("DImage", base)
+		base.image:SetImage("icon16/arrow_refresh.png")
+		base.image:SizeToContents()
 
 		base.text = vgui.Create("DLabel", base)
 		base.text:SetDark(true)
@@ -288,11 +323,32 @@ local CreateStep = {
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
-			self.text:SetPos(10, 5)
+			self.image:SetPos(10, 7)
+			self.text:SetPos(30, 5)
 			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+		end
+
+		base.OnCursorEntered = function(self)
+			self:SetBackgroundColor(AddColors(ORANGE, COLORADD_HOVER))
+		end
+
+		base.OnCursorExited = function(self)
+			self:SetBackgroundColor(ORANGE)
+		end
+
+		base.Paint = function(self)
+			local width, tall = self:GetSize()
+			local frac = width/6
+			local half1, half2 = tall/4, tall/1.3333
+			surface.SetDrawColor(GRAY:Unpack())
+			surface.DrawRect(0, half2, width, half1)
+			surface.SetDrawColor(self:GetBackgroundColor():Unpack())
+			surface.DrawRect(0, 0, frac, tall)
+			surface.DrawRect(0, 0, width, half2)
+			surface.DrawRect(frac*5, 0, frac, tall)
 		end
 
 		return base
@@ -305,6 +361,10 @@ local CreateStep = {
 		base:SetBackgroundColor(ORANGE)
 		cpanel:AddItem(base)
 
+		base.image = vgui.Create("DImage", base)
+		base.image:SetImage("icon16/arrow_redo.png")
+		base.image:SizeToContents()
+
 		base.text = vgui.Create("DLabel", base)
 		base.text:SetDark(true)
 		base.text:SetText("Step " .. id ..": Loop End")
@@ -312,8 +372,29 @@ local CreateStep = {
 		base.PerformLayout = function(self)
 			self:SetHeight(28)
 
-			self.text:SetPos(10, 5)
+			self.image:SetPos(10, 8)
+			self.text:SetPos(30, 7)
 			self.text:SetWide(self:GetWide())
+		end
+
+		base.OnCursorEntered = function(self)
+			self:SetBackgroundColor(AddColors(ORANGE, COLORADD_HOVER))
+		end
+
+		base.OnCursorExited = function(self)
+			self:SetBackgroundColor(ORANGE)
+		end
+
+		base.Paint = function(self)
+			local width, tall = self:GetSize()
+			local frac = width/6
+			local half1, half2 = tall/4, tall/1.3333
+			surface.SetDrawColor(GRAY:Unpack())
+			surface.DrawRect(0, 0, width, half1)
+			surface.SetDrawColor(self:GetBackgroundColor():Unpack())
+			surface.DrawRect(0, 0, frac, tall)
+			surface.DrawRect(0, half1, width, half2)
+			surface.DrawRect(frac*5, 0, frac, tall)
 		end
 
 		return base
@@ -433,9 +514,10 @@ local function CreateSavePanel( cpanel )
 		Owner:ConCommand("peak_concommac_file " .. data)
 	end
 
-	base.butt = vgui.Create("DButton", base)
-	base.butt:SetSize(20, 20)
-	base.butt:SetText("Save")
+	base.butt = vgui.Create("DImageButton", base)
+	base.butt:SetSize(18, 18)
+	base.butt:SetImage("icon16/disk.png")
+	base.butt:SetTooltip("Save")
 
 	base.butt.DoClick = function(self)
 		local savew = vgui.Create("DFrame")
@@ -489,9 +571,10 @@ local function CreateSavePanel( cpanel )
 
 	end
 
-	base.editb = vgui.Create("DButton", base)
-	base.editb:SetSize(20, 20)
-	base.editb:SetText("Edit")
+	base.editb = vgui.Create("DImageButton", base)
+	base.editb:SetSize(18, 18)
+	base.editb:SetImage("icon16/cross.png")
+	base.editb:SetTooltip("Delete Macros")
 
 	base.editb.DoClick = function()
 		local frame = vgui.Create("DFrame")
@@ -565,8 +648,8 @@ local function CreateSavePanel( cpanel )
 
 		base.box:SetSize(base:GetWide() - 55, 20)
 
-		base.butt:SetPos(base:GetWide() - 50, 5)
-		base.editb:SetPos(base:GetWide() - 25, 5)
+		base.butt:SetPos(base:GetWide() - 45, 5)
+		base.editb:SetPos(base:GetWide() - 20, 5)
 
 	end
 end
@@ -574,10 +657,13 @@ end
 local function CreateExpansionButtons(cpanel, macrobase)
 	local buttonbase = vgui.Create("Panel", cpanel)
 	cpanel:AddItem(buttonbase)
+	buttonbase.buttpanel = vgui.Create("DPanel", buttonbase)
+	buttonbase.buttpanel:SetPaintBackgroundEnabled(true)
+	buttonbase.buttpanel:SetBackgroundColor(GRAY)
 
-	buttonbase.addbutton = vgui.Create("DButton", buttonbase)
-	buttonbase.addbutton:SetText("+")
-	buttonbase.addbutton:SetSize(20, 20)
+	buttonbase.addbutton = vgui.Create("DImageButton", buttonbase.buttpanel)
+	buttonbase.addbutton:SetSize(18, 18)
+	buttonbase.addbutton:SetImage("icon16/add.png")
 
 	buttonbase.addbutton.DoClick = function()
 		local function ExpandMacro(typeid)
@@ -595,16 +681,21 @@ local function CreateExpansionButtons(cpanel, macrobase)
 		end
 
 		local dmenu = DermaMenu()
-		dmenu:AddOption( "Add Wait", function() ExpandMacro(1) end )
-		dmenu:AddOption( "Add Console Command", function() ExpandMacro(2) end )
-		dmenu:AddOption( "Add Loop Start", function() ExpandMacro(3) end )
-		dmenu:AddOption( "Add Loop End", function() ExpandMacro(4) end )
+		local option = dmenu:AddOption( "Add Wait", function() ExpandMacro(1) end )
+		option:SetIcon("icon16/clock.png")
+		option = dmenu:AddOption( "Add Console Command", function() ExpandMacro(2) end )
+		option:SetIcon("icon16/application_xp_terminal.png")
+		option = dmenu:AddOption( "Add Loop Start", function() ExpandMacro(3) end )
+		option:SetIcon("icon16/arrow_refresh.png")
+		option = dmenu:AddOption( "Add Loop End", function() ExpandMacro(4) end )
+		option:SetIcon("icon16/arrow_redo.png")
 		dmenu:Open()
 	end
 
-	buttonbase.removebutton = vgui.Create("DButton", buttonbase)
-	buttonbase.removebutton:SetText("-")
-	buttonbase.removebutton:SetSize(20, 20)
+	buttonbase.removebutton = vgui.Create("DImageButton", buttonbase.buttpanel)
+	buttonbase.removebutton:SetSize(18, 18)
+	buttonbase.removebutton:SetImage("icon16/delete.png")
+
 
 	buttonbase.removebutton.DoClick = function()
 		if Working then return end
@@ -634,11 +725,14 @@ local function CreateExpansionButtons(cpanel, macrobase)
 	end
 
 	buttonbase.PerformLayout = function(self)
-		self:SetHeight(30)
+		self:SetHeight(22)
 
-		self.addbutton:SetPos(self:GetWide()/2 - 30, 10)
+		buttonbase.buttpanel:SetPos(self:GetWide()/2 - 30)
+		buttonbase.buttpanel:SetSize(60, 22)
 
-		self.removebutton:SetPos(self:GetWide()/2 + 10, 10)
+		self.addbutton:SetPos(5, 2)
+
+		self.removebutton:SetPos(37, 2)
 	end
 
 	return buttonbase
