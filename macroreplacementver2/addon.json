@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "README.md",
+        ".git/*"
+    ],
+    "tags": ["fun"],
+    "title": "Console Command Macro",
+    "type": "tool"
+}
