@@ -739,7 +739,7 @@ local function CreateExpansionButtons(cpanel, macrobase)
 end
 
 local function DragDrop(self, panel, drop, _, x, y)
-	if drop then
+	if drop and not Working then
 		local items = self.items
 		local maxitem = #items
 
