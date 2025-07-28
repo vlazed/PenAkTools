@@ -179,6 +179,30 @@ local function AddColors(col1, col2)
 	return Color(col1.r + col2.r, col1.g + col2.g, col1.b + col2.b)
 end
 
+local draw_SimpleTextOutlined = draw.SimpleTextOutlined
+
+local RebuildMacroSteps, UIBuild
+
+local function labelMacroPanel(panel, text)
+	local textColor = panel:GetSkin().Colours.Label.Dark
+	local outlineColor = Color(255 - textColor.r, 255 - textColor.g, 255 - textColor.b)
+	panel.PaintOver = function(self, w, h)
+		draw_SimpleTextOutlined(text, "DermaDefault", 30, 5, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 0.75, outlineColor)
+	end
+end
+
+local function closeButton(panel, callback)
+	local close = vgui.Create("DImageButton", panel)
+	close:SetImage("icon16/delete.png")
+	close.DoClick = function(self)
+		local menu = DermaMenu()
+		menu:AddOption("Confirm delete?", callback)
+		menu:Open()
+	end
+	close:SetSize(14, 14)
+	return close
+end
+
 -----------------------
 --MACRO PANEL CREATION
 -----------------------
@@ -192,9 +216,7 @@ local CreateStep = {
 		base.image:SetImage("icon16/clock.png")
 		base.image:SizeToContents()
 
-		base.text = vgui.Create("DLabel", base)
-		base.text:SetDark(true)
-		base.text:SetText("Step " .. id .. ": Wait (seconds)")
+		labelMacroPanel(base, "Step " .. id .. ": Wait (seconds)")
 
 		base.entry = vgui.Create("DTextEntry", base)
 		base.entry:SetNumeric(true)
@@ -208,15 +230,20 @@ local CreateStep = {
 			end
 		end
 
+		base.close = closeButton(base, function()
+			table.remove(MacroTable, id)
+			RebuildMacroSteps(cpanel)
+		end)
+
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
 			self.image:SetPos(10, 7)
-			self.text:SetPos(30, 5)
-			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+
+			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -240,9 +267,7 @@ local CreateStep = {
 		base.image:SetImage("icon16/application_xp_terminal.png")
 		base.image:SizeToContents()
 
-		base.text = vgui.Create("DLabel", base)
-		base.text:SetDark(true)
-		base.text:SetText("Step " .. id .. ": Console Command")
+		labelMacroPanel(base, "Step " .. id .. ": Console Command")
 
 		base.entry = vgui.Create("DTextEntry", base)
 		base.entry:SetValue(tab.Var)
@@ -270,15 +295,20 @@ local CreateStep = {
 			end
 		end
 
+		base.close = closeButton(base, function()
+			table.remove(MacroTable, id)
+			RebuildMacroSteps(cpanel)
+		end)
+
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
 			self.image:SetPos(10, 7)
-			self.text:SetPos(30, 5)
-			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+
+			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -302,9 +332,7 @@ local CreateStep = {
 		base.image:SetImage("icon16/arrow_refresh.png")
 		base.image:SizeToContents()
 
-		base.text = vgui.Create("DLabel", base)
-		base.text:SetDark(true)
-		base.text:SetText("Step " .. id .. ": Loop Start (Repeat amount)")
+		labelMacroPanel(base, "Step " .. id .. ": Loop Start (Repeat amount)")
 
 		base.entry = vgui.Create("DTextEntry", base)
 		base.entry:SetNumeric(true)
@@ -318,16 +346,21 @@ local CreateStep = {
 				tab.Var = val
 			end
 		end
+		
+		base.close = closeButton(base, function()
+			table.remove(MacroTable, id)
+			RebuildMacroSteps(cpanel)
+		end)
 
 		base.PerformLayout = function(self)
 			self:SetHeight(48)
 
 			self.image:SetPos(10, 7)
-			self.text:SetPos(30, 5)
-			self.text:SetWide(self:GetWide())
 
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
+
+			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -364,16 +397,19 @@ local CreateStep = {
 		base.image:SetImage("icon16/arrow_redo.png")
 		base.image:SizeToContents()
 
-		base.text = vgui.Create("DLabel", base)
-		base.text:SetDark(true)
-		base.text:SetText("Step " .. id ..": Loop End")
+		labelMacroPanel(base, "Step " .. id ..": Loop End")
+
+		base.close = closeButton(base, function()
+			table.remove(MacroTable, id)
+			RebuildMacroSteps(cpanel)
+		end)
 
 		base.PerformLayout = function(self)
 			self:SetHeight(28)
 
 			self.image:SetPos(10, 8)
-			self.text:SetPos(30, 7)
-			self.text:SetWide(self:GetWide())
+
+			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -400,9 +436,7 @@ local CreateStep = {
 	end
 }
 
-local RebuildMacroSteps
-
-local function UIBuild(cpanel, tab, id)
+UIBuild = function(cpanel, tab, id)
 	local panel = CreateStep[tab.Type](cpanel, tab, id)
 	panel.id = id
 	panel.tab = tab
