@@ -247,7 +247,6 @@ local CreateStep = {
 		base.entry = vgui.Create("DTextEntry", base)
 		base.entry:SetValue(tab.Var)
 		base.entry:SetUpdateOnType(true)
-		base.entry:SetTextColor(color_black)
 
 		base.entry.OnValueChange = function(self, val)
 			val = tostring(val)
@@ -266,7 +265,7 @@ local CreateStep = {
 				base.entry:SetTextColor(RED)
 				base.entry:SetTooltip("Following commands can't be executed by Lua: " .. table.concat(restricted, ", "))
 			else
-				base.entry:SetTextColor(color_black)
+				base.entry:SetTextColor(nil)
 				base.entry:SetTooltip(nil)
 			end
 		end
