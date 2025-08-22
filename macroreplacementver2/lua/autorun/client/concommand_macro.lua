@@ -193,7 +193,7 @@ end
 
 local function closeButton(panel, callback)
 	local close = vgui.Create("DImageButton", panel)
-	close:SetImage("icon16/delete.png")
+	close:SetImage("icon16/cross.png")
 	close.DoClick = function(self)
 		local menu = DermaMenu()
 		menu:AddOption("Confirm delete?", callback)
