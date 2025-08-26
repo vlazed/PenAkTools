@@ -180,6 +180,7 @@ local DERMA_COLOR = Color(0, 0, 0, 255)
 local function refreshDermaColor()
 	local mat = derma.GetDefaultSkin().GwenTexture
 	DERMA_COLOR = mat:GetColor( 348, 28 )
+	hook.Run("CCM_refreshSkins", DERMA_COLOR)
 end
 -- For addons that change derma skins on the fly, hook the following function 
 -- to properly change the derma color
@@ -225,6 +226,19 @@ local function labelMacroPanel(panel, text)
 			local outlineColor = Color(255 - textColor.r, 255 - textColor.g, 255 - textColor.b)
 			draw_SimpleTextOutlined(text, "DermaDefault", 30, 5, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 0.75, outlineColor)
 		end
+	end
+end
+
+local panelPaintId = 0
+local function paintMacroPanel(panel, color, dermaColor, lerp, callback)
+	local bgColor = dermaColor:Lerp(color, lerp)
+	panelPaintId = panelPaintId + 1
+	panel.id = panelPaintId
+	hook.Add("CCM_refreshSkins", "Panel" .. tostring(panelPaintId), function(newDermaColor)
+		bgColor = newDermaColor:Lerp(color, lerp)
+	end)
+	panel.Paint = function(self, w, h)
+		callback(w, h, bgColor)
 	end
 end
 
@@ -291,9 +305,9 @@ local CreateStep = {
 			self:SetBackgroundColor(WHITE)
 		end
 
-		base.Paint = function(self, width, tall)
-			macroBox(0, 0, width, tall, DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP))
-		end
+		paintMacroPanel(base, WHITE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+			macroBox(0, 0, width, tall, color)
+		end)
 
 		return base
 	end,
@@ -360,9 +374,9 @@ local CreateStep = {
 			self:SetBackgroundColor(CYAN)
 		end
 
-		base.Paint = function(self, width, tall)
-			macroBox(0, 0, width, tall, DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP))
-		end
+		paintMacroPanel(base, CYAN, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+			macroBox(0, 0, width, tall, color)
+		end)
 
 		return base
 	end,
@@ -416,10 +430,9 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		base.Paint = function(self, width, tall)
-			local color = DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP)
+		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
 			macroBoxTop(0, 0, width, tall, color)
-		end
+		end)
 
 		return base
 	end,
@@ -458,10 +471,10 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		base.Paint = function(self, width, tall)
-			local color = DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP)
+		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
 			macroBoxBottom(0, 0, width, tall, color)
-		end
+		end)
+
 
 		return base
 	end
@@ -481,6 +494,11 @@ RebuildMacroSteps = function(macropanel) -- Rebuilds steps without clearing the 
 	macropanel:Clear()
 	macropanel.items = {}
 
+	-- Because panels related to these hooks are gone, their hooks are irrelevant.
+	-- Before rebuilding the panel, clear all the previous hooks
+	for i = 1, panelPaintId do
+		hook.Remove("CCM_refreshSkins", "Panel" .. tostring(i))
+	end
 	for id, tab in ipairs(MacroTable) do
 		local panel = UIBuild(macropanel, tab, id)
 		table.insert( macropanel.items, panel )
