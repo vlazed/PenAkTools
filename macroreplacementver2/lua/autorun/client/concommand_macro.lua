@@ -168,26 +168,63 @@ end )
 
 local CYAN = Color(0, 230, 230)
 local ORANGE = Color(230, 200, 0)
-local WHITE = Color(230, 230, 230)
+local WHITE = Color(220, 220, 220)
 local RED = Color(255, 0, 0)
 local GRAY = Color(230, 230, 230)
 local COLORADD_HOVER = Color(13, 13, 13)
+local COLOR_LERP = 0.7
 local DnDTag = "PEAKCONCOMMANDMACRO"
 local MacroPanel
+
+local DERMA_COLOR = Color(0, 0, 0, 255)
+local function refreshDermaColor()
+	local mat = derma.GetDefaultSkin().GwenTexture
+	DERMA_COLOR = mat:GetColor( 348, 28 )
+end
+-- For addons that change derma skins on the fly, hook the following function 
+-- to properly change the derma color
+CCM_refreshSkins = CCM_refreshSkins or derma.RefreshSkins
+function derma.RefreshSkins()
+	refreshDermaColor()
+	return CCM_refreshSkins()
+end
+refreshDermaColor()
+
 
 local function AddColors(col1, col2)
 	return Color(col1.r + col2.r, col1.g + col2.g, col1.b + col2.b)
 end
 
 local draw_SimpleTextOutlined = draw.SimpleTextOutlined
+local draw_SimpleText = draw.SimpleText
+local draw_RoundedBox = draw.RoundedBox
+local draw_RoundedBoxEx = draw.RoundedBoxEx
+
+local function macroBox(x, y, width, height, color)
+	draw_RoundedBox(8, x, y, width, height, color)
+end
+
+local function macroBoxTop(x, y, width, height, color)
+	draw_RoundedBoxEx(8, x, y, width, height, color, true, true, false, false)
+end
+
+local function macroBoxBottom(x, y, width, height, color)
+	draw_RoundedBoxEx(8, x, y, width, height, color, false, false, true, true)
+end
 
 local RebuildMacroSteps, UIBuild
 
 local function labelMacroPanel(panel, text)
-	local textColor = panel:GetSkin().Colours.Label.Dark
-	local outlineColor = Color(255 - textColor.r, 255 - textColor.g, 255 - textColor.b)
 	panel.PaintOver = function(self, w, h)
-		draw_SimpleTextOutlined(text, "DermaDefault", 30, 5, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 0.75, outlineColor)
+		local textColor = panel:GetSkin().Colours.Label.Dark
+		local _, _, lightness = textColor:ToHSL()
+
+		if lightness < 0.5 then
+			draw_SimpleText(text, "DermaDefault", 30, 5, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP)
+		else 
+			local outlineColor = Color(255 - textColor.r, 255 - textColor.g, 255 - textColor.b)
+			draw_SimpleTextOutlined(text, "DermaDefault", 30, 5, textColor, TEXT_ALIGN_LEFT, TEXT_ALIGN_TOP, 0.75, outlineColor)
+		end
 	end
 end
 
@@ -243,7 +280,7 @@ local CreateStep = {
 			self.entry:SetSize(self:GetWide() - 40, 15)
 			self.entry:SetPos(5, 28)
 
-			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
+			self.close:SetPos(self:GetWide() - self.close:GetWide() - 2, 2)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -252,6 +289,10 @@ local CreateStep = {
 
 		base.OnCursorExited = function(self)
 			self:SetBackgroundColor(WHITE)
+		end
+
+		base.Paint = function(self, width, tall)
+			macroBox(0, 0, width, tall, DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP))
 		end
 
 		return base
@@ -300,15 +341,15 @@ local CreateStep = {
 			RebuildMacroSteps(cpanel)
 		end)
 
-		base.PerformLayout = function(self)
+		base.PerformLayout = function(self, width)
 			self:SetHeight(48)
 
 			self.image:SetPos(10, 7)
 
-			self.entry:SetSize(self:GetWide() - 40, 15)
+			self.entry:SetSize(width - 40, 15)
 			self.entry:SetPos(5, 28)
 
-			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
+			self.close:SetPos(width - self.close:GetWide() - 2, 2)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -317,6 +358,10 @@ local CreateStep = {
 
 		base.OnCursorExited = function(self)
 			self:SetBackgroundColor(CYAN)
+		end
+
+		base.Paint = function(self, width, tall)
+			macroBox(0, 0, width, tall, DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP))
 		end
 
 		return base
@@ -352,15 +397,15 @@ local CreateStep = {
 			RebuildMacroSteps(cpanel)
 		end)
 
-		base.PerformLayout = function(self)
+		base.PerformLayout = function(self, width)
 			self:SetHeight(48)
 
 			self.image:SetPos(10, 7)
 
-			self.entry:SetSize(self:GetWide() - 40, 15)
+			self.entry:SetSize(width - 40, 15)
 			self.entry:SetPos(5, 28)
 
-			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
+			self.close:SetPos(width - self.close:GetWide() - 2, 2)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -371,16 +416,9 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		base.Paint = function(self)
-			local width, tall = self:GetSize()
-			local frac = width/6
-			local half1, half2 = tall/4, tall/1.3333
-			surface.SetDrawColor(GRAY:Unpack())
-			surface.DrawRect(0, half2, width, half1)
-			surface.SetDrawColor(self:GetBackgroundColor():Unpack())
-			surface.DrawRect(0, 0, frac, tall)
-			surface.DrawRect(0, 0, width, half2)
-			surface.DrawRect(frac*5, 0, frac, tall)
+		base.Paint = function(self, width, tall)
+			local color = DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP)
+			macroBoxTop(0, 0, width, tall, color)
 		end
 
 		return base
@@ -404,12 +442,12 @@ local CreateStep = {
 			RebuildMacroSteps(cpanel)
 		end)
 
-		base.PerformLayout = function(self)
+		base.PerformLayout = function(self, width)
 			self:SetHeight(28)
 
-			self.image:SetPos(10, 8)
+			self.image:SetPos(10, 5)
 
-			self.close:SetPos(self:GetWide() - self.close:GetWide(), 0)
+			self.close:SetPos(width - self.close:GetWide() - 2, 2)
 		end
 
 		base.OnCursorEntered = function(self)
@@ -420,16 +458,9 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		base.Paint = function(self)
-			local width, tall = self:GetSize()
-			local frac = width/6
-			local half1, half2 = tall/4, tall/1.3333
-			surface.SetDrawColor(GRAY:Unpack())
-			surface.DrawRect(0, 0, width, half1)
-			surface.SetDrawColor(self:GetBackgroundColor():Unpack())
-			surface.DrawRect(0, 0, frac, tall)
-			surface.DrawRect(0, half1, width, half2)
-			surface.DrawRect(frac*5, 0, frac, tall)
+		base.Paint = function(self, width, tall)
+			local color = DERMA_COLOR:Lerp(self:GetBackgroundColor(), COLOR_LERP)
+			macroBoxBottom(0, 0, width, tall, color)
 		end
 
 		return base
@@ -677,12 +708,12 @@ local function CreateSavePanel( cpanel )
 	base.supsnd:SetConVar("peak_concommac_soundoff")
 	base.supsnd:SetPos(0, 50)
 
-	base.PerformLayout = function()
+	base.PerformLayout = function(self, width)
 
-		base.box:SetSize(base:GetWide() - 55, 20)
+		base.box:SetSize(width - 55, 20)
 
-		base.butt:SetPos(base:GetWide() - 45, 5)
-		base.editb:SetPos(base:GetWide() - 20, 5)
+		base.butt:SetPos(width - 45, 5)
+		base.editb:SetPos(width - 20, 5)
 
 	end
 end
@@ -757,10 +788,10 @@ local function CreateExpansionButtons(cpanel, macrobase)
 		dmenu:Open()
 	end
 
-	buttonbase.PerformLayout = function(self)
+	buttonbase.PerformLayout = function(self, wide)
 		self:SetHeight(22)
 
-		buttonbase.buttpanel:SetPos(self:GetWide()/2 - 30)
+		buttonbase.buttpanel:SetPos(wide/2 - 30)
 		buttonbase.buttpanel:SetSize(60, 22)
 
 		self.addbutton:SetPos(5, 2)
