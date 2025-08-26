@@ -189,8 +189,6 @@ function derma.RefreshSkins()
 	refreshDermaColor()
 	return CCM_refreshSkins()
 end
-refreshDermaColor()
-
 
 local function AddColors(col1, col2)
 	return Color(col1.r + col2.r, col1.g + col2.g, col1.b + col2.b)
@@ -305,9 +303,10 @@ local CreateStep = {
 			self:SetBackgroundColor(WHITE)
 		end
 
-		paintMacroPanel(base, WHITE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+		local function callback(width, tall, color)
 			macroBox(0, 0, width, tall, color)
-		end)
+		end
+		paintMacroPanel(base, WHITE, DERMA_COLOR, COLOR_LERP, callback)
 
 		return base
 	end,
@@ -374,9 +373,10 @@ local CreateStep = {
 			self:SetBackgroundColor(CYAN)
 		end
 
-		paintMacroPanel(base, CYAN, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+		local function callback(width, tall, color)
 			macroBox(0, 0, width, tall, color)
-		end)
+		end
+		paintMacroPanel(base, CYAN, DERMA_COLOR, COLOR_LERP, callback)
 
 		return base
 	end,
@@ -430,9 +430,10 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+		local function callback(width, tall, color)
 			macroBoxTop(0, 0, width, tall, color)
-		end)
+		end
+		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, callback)
 
 		return base
 	end,
@@ -471,9 +472,10 @@ local CreateStep = {
 			self:SetBackgroundColor(ORANGE)
 		end
 
-		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, function(width, tall, color)
+		local function callback(width, tall, color)
 			macroBoxBottom(0, 0, width, tall, color)
-		end)
+		end
+		paintMacroPanel(base, ORANGE, DERMA_COLOR, COLOR_LERP, callback)
 
 
 		return base
@@ -877,6 +879,8 @@ end
 
 local function MacroBuild( Panel )
 	if not Owner or not IsValid(Owner) then Owner = LocalPlayer() end
+
+	refreshDermaColor()
 
 	CreateSavePanel(Panel)
 
