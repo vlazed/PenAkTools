@@ -1,7 +1,18 @@
+---@class MacroStep
+---@field Type integer
+---@field Var any
+
+---@class Loop
+---@field Repeats integer
+---@field Jump integer
+
+---@alias ActionFunction fun(var: any, step: integer): step: integer
+
 if not game.SinglePlayer() then return end
 
 local Working, Stop = false, false
 local Stop = false
+---@type MacroStep[], Loop[]
 local MacroTable, Loops = {}, {}
 local Step, CurLoop = 0, 0
 local Owner = Owner or LocalPlayer()
@@ -15,6 +26,7 @@ local CONCOMMAND = 2
 local LOOPSTART = 3
 local LOOPEND = 4
 
+---@type ActionFunction[]
 local Action = {
 	function(var, step) -- Wait
 		var = tonumber(var)
@@ -70,6 +82,7 @@ local Action = {
 }
 
 -- Default Macro Setup
+---@type MacroStep[]
 local DefaultMacro = {
 	{
 		Type = WAIT,
@@ -106,6 +119,7 @@ local DefaultMacro = {
 	}
 }
 
+---@param step integer
 local function macro(step)
 	while true do
 		step = coroutine.yield(step)
@@ -138,12 +152,57 @@ local cor = coroutine.create(macro)
 
 local function MacroTick()
 	if Working then
+		---@type boolean, integer
 		local b, step = coroutine.resume(cor, Step)
 		assert(b, step)
 		if step then
 			Step = step
 		end
 	end
+end
+
+local Exceptions = {
+	OpenLoop = "Open loop detected in macro. Make sure to close any loops",
+	ActionGeneric = "Invalid action",
+}
+
+---@param macros MacroStep[]
+---@return boolean
+local function evaluateAction(macros)
+	return true
+end
+
+---@param macros MacroStep[]
+---@return boolean pass
+local function evaluateLoop(macros)
+	-- Put loops in a stack
+	local top = 0
+
+	for _, mac in ipairs(macros) do
+		if mac.Type == LOOPSTART then
+			top = top + 1
+		elseif mac.Type == LOOPEND then
+			if top == 0 then return false end
+			top = top - 1
+		end
+	end
+
+	return top == 0
+end
+
+---@param macros MacroStep[]
+---@return boolean pass
+---@return string? errorMsg
+local function evaluate(macros)
+	if not evaluateLoop(macros) then
+		return false, Exceptions.OpenLoop
+	end
+
+	if not evaluateAction(macros) then
+		return false, Exceptions.ActionGeneric
+	end
+
+	return true
 end
 
 hook.Add("Think", "PEAKConCommandMacro", MacroTick)
@@ -154,10 +213,20 @@ concommand.Add( "peak_mac_start", function()
 	if not Working then
 		if not SuppressMessages:GetBool() then Owner:ChatPrint("Console Macro starting!") end
 		if not SuppressSounds:GetBool() then surface.PlaySound("buttons/blip1.wav") end
-		Working = true
-		Stop = false
-		Step = 1
---		print("start")
+
+		local pass, errMsg = evaluate(MacroTable)
+		if pass then
+			Working = true
+			Stop = false
+			Step = 1
+	--		print("start")
+		else
+			if not SuppressMessages:GetBool() then Owner:ChatPrint(Format("Error: %s", errMsg)) end
+			if not SuppressSounds:GetBool() then surface.PlaySound("buttons/button10.wav") end
+			MsgN(Format("[Concommand Macro] Error: %s", errMsg))
+
+			-- REQUEST: Highlight blocks that are causing error?
+		end
 	else
 		Stop = true
 --		print("manual stop")
